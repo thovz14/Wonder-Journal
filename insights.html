@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Wonder Journal — Insights</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="theme-transition-overlay" id="theme-overlay"></div>
+<div class="confetti-container" id="confetti-container"></div>
+<div class="streak-badge-overlay" id="streak-overlay" onclick="this.classList.remove('visible')">
+  <div class="streak-badge">
+    <span class="badge-emoji">🔥</span>
+    <div class="badge-title">Streak!</div>
+    <div class="badge-subtitle"></div>
+    <button class="btn btn-primary" style="margin-top:20px" onclick="document.getElementById('streak-overlay').classList.remove('visible')">Yes! 🎉</button>
+  </div>
+</div>
+<div class="yearwrap-overlay" id="yearwrap-overlay"></div>
+
+<div class="page-scroll">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <div>
+      <div class="page-title">Insights 📊</div>
+      <div class="page-subtitle" id="month-label">Deze maand</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-icon" id="btn-week" style="font-size:12px;font-weight:700;width:auto;padding:0 12px">Week</button>
+      <button class="btn-icon" id="btn-month" style="font-size:12px;font-weight:700;width:auto;padding:0 12px;background:var(--accent-soft);border-color:var(--accent);color:var(--accent)">Maand</button>
+    </div>
+  </div>
+
+  <!-- Doel kaart (Pixel Journal stijl) -->
+  <div class="card" style="text-align:center;padding:28px 20px;margin-bottom:14px">
+    <span style="font-size:48px;display:block;margin-bottom:12px" id="top-mood-emoji">🌱</span>
+    <div style="font-size:12px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Jouw meest voorkomende gevoel</div>
+    <div style="font-family:var(--ff-display);font-size:22px;font-weight:800" id="top-mood-label">Laden...</div>
+  </div>
+
+  <!-- Stats rij -->
+  <div class="stat-grid" style="margin-bottom:14px">
+    <div class="stat-card">
+      <span class="stat-num" id="s-entries">0</span>
+      <span class="stat-label">Entries</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="s-streak">0</span>
+      <span class="stat-label">Langste streak</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="s-words">0</span>
+      <span class="stat-label">Totaal woorden</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="s-steps">0</span>
+      <span class="stat-label">Gem. stappen</span>
+    </div>
+  </div>
+
+  <!-- Streaks -->
+  <div class="card">
+    <div class="card-label">Streaks 🔥</div>
+    <div class="streak-row">
+      <div class="streak-chip" id="chip-3">
+        <span class="num" id="streak-3">0</span>
+        <span class="lbl">3 dagen</span>
+      </div>
+      <div class="streak-chip" id="chip-7">
+        <span class="num" id="streak-7">0</span>
+        <span class="lbl">7 dagen</span>
+      </div>
+      <div class="streak-chip" id="chip-30">
+        <span class="num" id="streak-30">0</span>
+        <span class="lbl">30 dagen</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mood distributie -->
+  <div class="card">
+    <div class="card-label">Mood Verdeling</div>
+    <div id="mood-bars"></div>
+  </div>
+
+  <!-- Correlatie insight -->
+  <div class="card" id="correlation-card" style="display:none">
+    <div class="card-label">Patroon Analyse 🔍</div>
+    <div class="insight-card">
+      <p id="correlation-text"></p>
+    </div>
+  </div>
+
+  <!-- Maand activiteit kalender (mini) -->
+  <div class="card">
+    <div class="card-label">Activiteit deze maand</div>
+    <div id="mini-cal" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:4px"></div>
+    <div style="display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--text-muted)">
+      <span>🟣 Ingevuld</span>
+      <span>⬛ Niet ingevuld</span>
+      <span>🔵 Vandaag</span>
+    </div>
+  </div>
+
+  <!-- Jaar overzicht knop -->
+  <button class="btn btn-ghost" id="btn-yearwrap" style="margin-bottom:16px">🎉 Jaaroverzicht bekijken</button>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-indicator" id="nav-indicator"></div>
+  <ul class="nav-list">
+    <li><button class="nav-item" onclick="location.href='dashboard.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span class="nav-label">Vandaag</span>
+    </button></li>
+    <li><button class="nav-item active" id="nav-insights">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4zm2.5 2.1h-15V5h15v14.1zm0-16.1h-15c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+      <span class="nav-label">Insights</span>
+    </button></li>
+    <li><button class="nav-item" onclick="location.href='calendar.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+      <span class="nav-label">Kalender</span>
+    </button></li>
+    <li><button class="nav-item" onclick="location.href='settings.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span class="nav-label">Profiel</span>
+    </button></li>
+  </ul>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="app.js"></script>
+<script>
+const MOOD_NAMES = {
+  '😊':'Blij','😄':'Vrolijk','😌':'Rustig','😐':'Neutraal','😞':'Down',
+  '😢':'Verdrietig','😰':'Gestrest','😡':'Boos','🥱':'Moe','🤒':'Ziek'
+};
+
+let viewMode = 'month'; // week | month
+let uid = null;
+let allEntries = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!Session.requireAuth()) return;
+  uid = Session.getUID();
+  if (!firebase.apps?.length) firebase.initializeApp(FIREBASE_CONFIG);
+  ThemeManager.init();
+  initNav('insights');
+
+  firebase.auth().onAuthStateChanged(u => { if (!u) location.href='../index.html'; });
+
+  allEntries = await Entries.getAllDecrypted(uid);
+  renderAll();
+
+  document.getElementById('btn-month').addEventListener('click', () => { viewMode='month'; toggleViewBtns(); renderAll(); });
+  document.getElementById('btn-week').addEventListener('click',  () => { viewMode='week'; toggleViewBtns(); renderAll(); });
+  document.getElementById('btn-yearwrap').addEventListener('click', () => showYearWrap(uid));
+});
+
+function toggleViewBtns() {
+  const isMonth = viewMode === 'month';
+  const mb = document.getElementById('btn-month');
+  const wb = document.getElementById('btn-week');
+  mb.style.cssText = isMonth ? 'font-size:12px;font-weight:700;width:auto;padding:0 12px;background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent)' : 'font-size:12px;font-weight:700;width:auto;padding:0 12px';
+  wb.style.cssText = !isMonth ? 'font-size:12px;font-weight:700;width:auto;padding:0 12px;background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent)' : 'font-size:12px;font-weight:700;width:auto;padding:0 12px';
+}
+
+function getFilteredEntries() {
+  const now = new Date();
+  if (viewMode === 'week') {
+    const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate()-7);
+    return allEntries.filter(e => new Date(e.date) >= weekAgo);
+  }
+  const month = String(now.getMonth()+1).padStart(2,'0');
+  const prefix = `${now.getFullYear()}-${month}`;
+  return allEntries.filter(e => e.date.startsWith(prefix));
+}
+
+function renderAll() {
+  const entries = getFilteredEntries();
+  const label = viewMode === 'week' ? 'Afgelopen 7 dagen' : (() => {
+    const months = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+    return `${months[new Date().getMonth()]} ${new Date().getFullYear()}`;
+  })();
+  document.getElementById('month-label').textContent = label;
+  renderTopMood(entries);
+  renderStats(entries);
+  renderStreaks();
+  renderMoodBars(entries);
+  renderCorrelation(entries);
+  renderMiniCal();
+}
+
+function renderTopMood(entries) {
+  const dist = getMoodDistribution(entries);
+  const top = Object.entries(dist).sort((a,b)=>b[1]-a[1])[0];
+  if (top) {
+    document.getElementById('top-mood-emoji').textContent = top[0];
+    document.getElementById('top-mood-label').textContent = MOOD_NAMES[top[0]] || top[0];
+  } else {
+    document.getElementById('top-mood-emoji').textContent = '🌱';
+    document.getElementById('top-mood-label').textContent = 'Nog geen data';
+  }
+}
+
+async function renderStats(entries) {
+  document.getElementById('s-entries').textContent = entries.length;
+  const streak = await StreakManager.getCurrent();
+  document.getElementById('s-streak').textContent = streak;
+  const words = entries.reduce((s,e)=>s+(e.text?.split(/\s+/).filter(Boolean).length||0),0);
+  document.getElementById('s-words').textContent = words > 999 ? Math.round(words/1000)+'k' : words;
+  const stepsArr = entries.filter(e=>e.steps>0);
+  const avgSteps = stepsArr.length ? Math.round(stepsArr.reduce((s,e)=>s+e.steps,0)/stepsArr.length) : 0;
+  document.getElementById('s-steps').textContent = avgSteps > 999 ? Math.round(avgSteps/1000)+'k' : avgSteps;
+}
+
+async function renderStreaks() {
+  const streak = await StreakManager.getCurrent();
+  ['3','7','30'].forEach(n => {
+    const el = document.getElementById('streak-'+n);
+    const chip = document.getElementById('chip-'+n);
+    const num = parseInt(n);
+    el.textContent = streak >= num ? '✓' : streak;
+    if (streak >= num) {
+      chip.classList.add('active');
+      el.style.color = 'var(--orange)';
+    }
+  });
+}
+
+function renderMoodBars(entries) {
+  const dist = getMoodDistribution(entries);
+  const total = Object.values(dist).reduce((a,b)=>a+b,0)||1;
+  const sorted = Object.entries(dist).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const colors = ['#7c3aed','#6366f1','#22c55e','#f97316','#ec4899','#3b82f6'];
+  document.getElementById('mood-bars').innerHTML = sorted.map(([m,c],i) => `
+    <div class="mood-bar-wrap">
+      <div class="mood-bar-label">
+        <span>${m} ${MOOD_NAMES[m]||m}</span>
+        <span style="font-weight:700">${c}×</span>
+      </div>
+      <div class="mood-bar-track">
+        <div class="mood-bar-fill" style="width:0%;background:${colors[i%colors.length]}" data-pct="${Math.round(c/total*100)}"></div>
+      </div>
+    </div>`).join('');
+  // Animate
+  setTimeout(() => {
+    document.querySelectorAll('.mood-bar-fill').forEach(el => {
+      el.style.width = el.dataset.pct + '%';
+    });
+  }, 100);
+}
+
+function renderCorrelation(entries) {
+  const corr = calcCorrelation(entries);
+  const card = document.getElementById('correlation-card');
+  const text = document.getElementById('correlation-text');
+  if (corr === null) { card.style.display='none'; return; }
+  card.style.display='block';
+  const c = parseFloat(corr);
+  let msg = '';
+  if (c > 0.4) msg = `📈 Sterke positieve correlatie (${corr}): Op dagen dat je meer stappen zette, voelde je je ook beter! Blijf actief.`;
+  else if (c > 0.15) msg = `🔄 Lichte trend (${corr}): Bewegen lijkt je humeur positief te beïnvloeden.`;
+  else if (c < -0.15) msg = `🤔 Opvallend (${corr}): Op actieve dagen voelde je je iets minder goed — misschien was je uitgeput?`;
+  else msg = `📊 Geen sterke correlatie (${corr}) gevonden tussen je stappen en gevoel deze periode.`;
+  text.textContent = msg;
+}
+
+function renderMiniCal() {
+  const now = new Date();
+  const year = now.getFullYear(), month = now.getMonth();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const today = dateStr();
+  const container = document.getElementById('mini-cal');
+  const all = allEntries.map(e => e.date);
+  let html = '';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = ds === today;
+    const has = all.includes(ds);
+    const isFuture = new Date(ds) > new Date(today);
+    let bg = 'var(--card2)', color='var(--text-muted)';
+    if (isToday) { bg='var(--accent-soft)'; color='var(--accent)'; }
+    else if (has) { bg='var(--green-soft)'; color='var(--green)'; }
+    else if (isFuture) { bg='transparent'; color='var(--border)'; }
+    html += `<div style="aspect-ratio:1;background:${bg};border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:${color};animation:calFadeIn 0.3s ease forwards ${d*20}ms;opacity:0">${d}</div>`;
+  }
+  container.innerHTML = html;
+}
+</script>
+</body>
+</html>

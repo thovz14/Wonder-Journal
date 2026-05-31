@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Wonder Journal — Kalender</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="theme-transition-overlay" id="theme-overlay"></div>
+
+<!-- Entry Detail Modal -->
+<div class="modal-backdrop" id="entry-modal" onclick="closeModal(event)">
+  <div class="modal-sheet" onclick="e=>e.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-date" id="modal-date">—</div>
+    <span class="modal-emoji" id="modal-emoji">😊</span>
+    <h2 style="font-family:var(--ff-display);font-size:18px;margin-bottom:4px" id="modal-mood-name">—</h2>
+    <div class="modal-steps-row" id="modal-steps-row">
+      <span>👟</span><span id="modal-steps">0 stappen</span>
+    </div>
+    <div class="modal-journal" id="modal-journal-text">—</div>
+    <button class="btn btn-ghost" style="margin-top:24px" onclick="document.getElementById('entry-modal').classList.remove('open')">Sluiten</button>
+  </div>
+</div>
+
+<div class="page-scroll">
+
+  <!-- Header -->
+  <div class="cal-header">
+    <div>
+      <div class="page-title">Kalender 📅</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="cal-nav" id="btn-prev">‹</button>
+      <span style="font-family:var(--ff-display);font-size:15px;font-weight:700;min-width:100px;text-align:center" id="cal-month-label"></span>
+      <button class="cal-nav" id="btn-next">›</button>
+    </div>
+  </div>
+
+  <!-- Legenda -->
+  <div style="display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-sub)">
+      <div style="width:14px;height:14px;border-radius:4px;background:var(--accent-soft);border:1px solid rgba(124,58,237,0.35)"></div>Vandaag
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-sub)">
+      <div style="width:14px;height:14px;border-radius:4px;background:var(--green-soft);border:1px solid rgba(34,197,94,0.3)"></div>Ingevuld
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-sub)">
+      <div style="width:14px;height:14px;border-radius:4px;background:var(--card2)"></div>Niet ingevuld
+    </div>
+  </div>
+
+  <!-- Kalender grid -->
+  <div class="card" style="padding:16px">
+    <div class="cal-grid" id="cal-dow-row">
+      <div class="cal-dow">Z</div><div class="cal-dow">M</div><div class="cal-dow">D</div>
+      <div class="cal-dow">W</div><div class="cal-dow">D</div><div class="cal-dow">V</div>
+      <div class="cal-dow">Z</div>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <!-- Maand statistieken -->
+  <div class="stat-grid" style="margin-top:4px">
+    <div class="stat-card">
+      <span class="stat-num" id="cal-filled">0</span>
+      <span class="stat-label">Ingevuld</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="cal-pct">0%</span>
+      <span class="stat-label">Compleetheid</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="cal-streak">0</span>
+      <span class="stat-label">Huidige streak</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="cal-mood-top">—</span>
+      <span class="stat-label">Top gevoel</span>
+    </div>
+  </div>
+
+  <!-- Mood rij overzicht (zoals Pixel Journal) -->
+  <div class="card" style="margin-top:4px">
+    <div class="card-label">Gevoel per dag deze maand</div>
+    <div id="mood-timeline" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-indicator" id="nav-indicator"></div>
+  <ul class="nav-list">
+    <li><button class="nav-item" onclick="location.href='dashboard.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span class="nav-label">Vandaag</span>
+    </button></li>
+    <li><button class="nav-item" onclick="location.href='insights.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4zm2.5 2.1h-15V5h15v14.1zm0-16.1h-15c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+      <span class="nav-label">Insights</span>
+    </button></li>
+    <li><button class="nav-item active" id="nav-calendar">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+      <span class="nav-label">Kalender</span>
+    </button></li>
+    <li><button class="nav-item" onclick="location.href='settings.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span class="nav-label">Profiel</span>
+    </button></li>
+  </ul>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="app.js"></script>
+<script>
+const MONTHS = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const MOOD_NAMES = {'😊':'Blij','😄':'Vrolijk','😌':'Rustig','😐':'Neutraal','😞':'Down','😢':'Verdrietig','😰':'Gestrest','😡':'Boos','🥱':'Moe','🤒':'Ziek'};
+let viewYear = new Date().getFullYear();
+let viewMonth = new Date().getMonth();
+let uid = null;
+let allEntries = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!Session.requireAuth()) return;
+  uid = Session.getUID();
+  if (!firebase.apps?.length) firebase.initializeApp(FIREBASE_CONFIG);
+  firebase.auth().onAuthStateChanged(u => { if (!u) location.href='../index.html'; });
+  ThemeManager.init();
+  initNav('calendar');
+  allEntries = await DB.getAll('entries');
+  renderCalendar();
+  document.getElementById('btn-prev').addEventListener('click', () => { viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderCalendar(); });
+  document.getElementById('btn-next').addEventListener('click', () => { viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); });
+});
+
+function renderCalendar() {
+  const today = dateStr();
+  const label = `${MONTHS[viewMonth]} ${viewYear}`;
+  document.getElementById('cal-month-label').textContent = label;
+  const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+  const firstDow = new Date(viewYear, viewMonth, 1).getDay();
+  const grid = document.getElementById('cal-grid');
+  const entryMap = {};
+  allEntries.forEach(e => entryMap[e.date] = e);
+  let html = '';
+  // Lege vakjes voor begin van maand
+  for (let i = 0; i < firstDow; i++) html += '<div class="cal-day empty"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const entry = entryMap[ds];
+    const isToday = ds === today;
+    const isFuture = ds > today;
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    else if (entry) cls += ' has-entry';
+    else if (isFuture) cls += ' future';
+    else cls += ' no-entry';
+    const delay = ((firstDow + d - 1) * 30) + 'ms';
+    const mood = entry?.mood || '';
+    const clickable = entry && !isToday ? `onclick="openEntry('${ds}')"` : '';
+    html += `<div class="${cls}" style="animation-delay:${delay}" ${clickable}>
+      ${d}${mood ? `<span class="cal-mood">${mood}</span>` : ''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+  renderCalStats(entryMap, daysInMonth, today);
+  renderMoodTimeline(entryMap, daysInMonth);
+}
+
+function renderCalStats(entryMap, daysInMonth, today) {
+  const monthPrefix = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}`;
+  const monthEntries = Object.values(entryMap).filter(e => e.date.startsWith(monthPrefix));
+  const filled = monthEntries.length;
+  const pastDays = viewYear === new Date().getFullYear() && viewMonth === new Date().getMonth()
+    ? new Date().getDate() : daysInMonth;
+  const pct = pastDays > 0 ? Math.round(filled/pastDays*100) : 0;
+  document.getElementById('cal-filled').textContent = filled;
+  document.getElementById('cal-pct').textContent = pct + '%';
+  StreakManager.getCurrent().then(s => document.getElementById('cal-streak').textContent = s);
+  const moodDist = {};
+  monthEntries.forEach(e => { if(e.mood) moodDist[e.mood] = (moodDist[e.mood]||0)+1; });
+  const topMood = Object.entries(moodDist).sort((a,b)=>b[1]-a[1])[0]?.[0] || '—';
+  document.getElementById('cal-mood-top').textContent = topMood;
+}
+
+function renderMoodTimeline(entryMap, daysInMonth) {
+  const container = document.getElementById('mood-timeline');
+  let html = '';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const entry = entryMap[ds];
+    if (entry?.mood) {
+      html += `<div title="${d} ${MONTHS[viewMonth]}: ${MOOD_NAMES[entry.mood]||''}" style="font-size:22px;cursor:pointer" onclick="openEntry('${ds}')">${entry.mood}</div>`;
+    }
+  }
+  container.innerHTML = html || '<span style="color:var(--text-muted);font-size:14px">Nog geen moods ingevuld deze maand.</span>';
+}
+
+async function openEntry(ds) {
+  const entry = await Entries.loadDecrypted(uid, ds);
+  if (!entry) return;
+  const d = new Date(ds + 'T12:00:00');
+  const days = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+  document.getElementById('modal-date').textContent = `${days[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('modal-emoji').textContent = entry.mood || '📝';
+  document.getElementById('modal-mood-name').textContent = MOOD_NAMES[entry.mood] || entry.mood || '—';
+  document.getElementById('modal-steps').textContent = entry.steps ? `${entry.steps.toLocaleString()} stappen` : 'Geen stappen';
+  document.getElementById('modal-journal-text').textContent = entry.text || 'Geen tekst geschreven.';
+  const stepsRow = document.getElementById('modal-steps-row');
+  stepsRow.style.display = entry.steps ? 'flex' : 'none';
+  document.getElementById('entry-modal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('entry-modal')) {
+    document.getElementById('entry-modal').classList.remove('open');
+  }
+}
+</script>
+</body>
+</html>

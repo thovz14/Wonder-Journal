@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Wonder Journal">
+  <title>Wonder Journal</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="app.css">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+</head>
+<body>
+
+<!-- Theme transitie overlay -->
+<div class="theme-transition-overlay" id="theme-overlay"></div>
+
+<!-- Confetti -->
+<div class="confetti-container" id="confetti-container"></div>
+
+<!-- Streak Badge -->
+<div class="streak-badge-overlay" id="streak-overlay" onclick="this.classList.remove('visible')">
+  <div class="streak-badge">
+    <span class="badge-emoji">🔥</span>
+    <div class="badge-title">3 Dagen op rij!</div>
+    <div class="badge-subtitle">Je hebt 3 dagen achter elkaar geschreven.</div>
+    <button class="btn btn-primary" style="margin-top:20px" onclick="document.getElementById('streak-overlay').classList.remove('visible')">Yes! 🎉</button>
+  </div>
+</div>
+
+<!-- Onboarding overlay -->
+<div class="onboarding-overlay" id="onboarding">
+  <h2>Welkom bij<br>Wonder Journal ✨</h2>
+  <p>Hoe oud ben je? Dit helpt ons jou<br>beter te ondersteunen.</p>
+  <div class="age-cards">
+    <div class="age-card" data-age="baby">
+      <span class="age-emoji">👶</span>
+      <span class="age-label">Baby</span>
+      <span class="age-range">0–3 jaar</span>
+    </div>
+    <div class="age-card" data-age="child">
+      <span class="age-emoji">👦</span>
+      <span class="age-label">Klein kind</span>
+      <span class="age-range">3–10 jaar</span>
+    </div>
+    <div class="age-card" data-age="teen">
+      <span class="age-emoji">🧑‍🎓</span>
+      <span class="age-label">Tiener</span>
+      <span class="age-range">10–20 jaar</span>
+    </div>
+    <div class="age-card" data-age="adult">
+      <span class="age-emoji">🧑</span>
+      <span class="age-label">Volwassene</span>
+      <span class="age-range">20–60 jaar</span>
+    </div>
+    <div class="age-card" data-age="senior">
+      <span class="age-emoji">🧓</span>
+      <span class="age-label">Oudere</span>
+      <span class="age-range">60+ jaar</span>
+    </div>
+  </div>
+</div>
+
+<!-- Jaar Overzicht overlay -->
+<div class="yearwrap-overlay" id="yearwrap-overlay"></div>
+
+<!-- HOOFD CONTENT -->
+<div class="page-scroll" id="main-scroll">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <div>
+      <div class="page-title" id="greeting-title">Goedemorgen ✨</div>
+      <div class="page-subtitle" id="today-date-label">Vandaag</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn-icon" id="streak-btn" title="Streak">🔥 <span id="streak-num" style="font-size:13px;font-weight:700">0</span></button>
+      <button class="btn-icon" id="notif-btn" title="Notificaties">🔔</button>
+      <div style="width:40px;height:40px;border-radius:50%;overflow:hidden;border:2px solid var(--accent);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;cursor:pointer" id="header-avatar" onclick="location.href='settings.html'">🧑</div>
+    </div>
+  </div>
+
+  <!-- Quick stats rij (Pixel Journal stijl) -->
+  <div class="stat-grid" style="margin-bottom:18px">
+    <div class="stat-card">
+      <span class="stat-num" id="stat-entries">0</span>
+      <span class="stat-label">Dagboeken totaal</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="stat-streak-days">0</span>
+      <span class="stat-label">Huidige streak</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="stat-steps-today">—</span>
+      <span class="stat-label">Stappen vandaag</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="stat-words">0</span>
+      <span class="stat-label">Woorden dit jaar</span>
+    </div>
+  </div>
+
+  <!-- Vandaag kaart -->
+  <div class="card" id="today-card">
+    <div class="card-label">Hoe voel je je vandaag?</div>
+
+    <!-- Mood rij -->
+    <div class="mood-row" id="mood-row">
+      <button class="mood-btn" data-mood="😊"><span class="emoji">😊</span>Blij</button>
+      <button class="mood-btn" data-mood="😌"><span class="emoji">😌</span>Rustig</button>
+      <button class="mood-btn" data-mood="😐"><span class="emoji">😐</span>Neutraal</button>
+      <button class="mood-btn" data-mood="😞"><span class="emoji">😞</span>Down</button>
+      <button class="mood-btn" data-mood="😰"><span class="emoji">😰</span>Stress</button>
+    </div>
+
+    <!-- Stappen -->
+    <div class="steps-row">
+      <span class="steps-icon">👟</span>
+      <div class="steps-info">
+        <label for="steps-input">Stappen vandaag</label>
+        <input class="steps-input" id="steps-input" type="number" placeholder="0" min="0" max="99999" inputmode="numeric">
+      </div>
+      <button class="btn-icon" id="sync-health-btn" title="Sync Health" style="font-size:16px">⚡</button>
+    </div>
+
+    <!-- Dagboek tekstvak + microfoon -->
+    <div class="input-wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+        <label class="input-label" style="margin:0">Dagboek</label>
+        <button class="mic-btn" id="mic-btn" title="Spraak naar tekst">🎙</button>
+      </div>
+      <textarea id="journal-text" placeholder="Schrijf hoe je dag was..." rows="5"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <span style="font-size:12px;color:var(--text-muted)" id="word-count">0 woorden</span>
+        <span style="font-size:12px;color:var(--text-muted)" id="save-status">Niet opgeslagen</span>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="save-btn">Opslaan ✓</button>
+  </div>
+
+  <!-- Recente entries (Pixel Journal stijl) -->
+  <div class="card-label" style="margin-top:8px;margin-bottom:10px">Recent</div>
+  <div id="recent-entries"></div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-indicator" id="nav-indicator"></div>
+  <ul class="nav-list">
+    <li><button class="nav-item active" id="nav-dashboard" onclick="location.href='dashboard.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span class="nav-label">Vandaag</span>
+    </button></li>
+    <li><button class="nav-item" id="nav-insights" onclick="location.href='insights.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4zm2.5 2.1h-15V5h15v14.1zm0-16.1h-15c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+      <span class="nav-label">Insights</span>
+    </button></li>
+    <li><button class="nav-item" id="nav-calendar" onclick="location.href='calendar.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+      <span class="nav-label">Kalender</span>
+    </button></li>
+    <li><button class="nav-item" id="nav-settings" onclick="location.href='settings.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span class="nav-label">Profiel</span>
+    </button></li>
+  </ul>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="app.js"></script>
+<script>
+const MOODS = ['😊','😄','😌','😐','😞','😢','😰','😡','🥱','🤒'];
+let selectedMood = null;
+let currentUID = null;
+let recognition = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!Session.requireAuth()) return;
+  currentUID = Session.getUID();
+  FireStore.init(currentUID);
+
+  // Onboarding check
+  const ageGroup = await DB.getMeta('age_group');
+  if (!ageGroup) showOnboarding();
+
+  // Auth
+  if (!firebase.apps?.length) firebase.initializeApp(FIREBASE_CONFIG);
+  firebase.auth().onAuthStateChanged(u => {
+    if (!u) location.href = '../index.html';
+    // Profielfoto in header
+    const avatar = document.getElementById('header-avatar');
+    if (u?.photoURL) {
+      avatar.style.cssText += `;background-image:url(${u.photoURL});background-size:cover;background-position:center;`;
+      avatar.textContent = '';
+    } else if (u?.displayName) {
+      avatar.textContent = u.displayName[0].toUpperCase();
+    }
+  });
+
+  // Thema + datum
+  ThemeManager.init();
+  setGreeting();
+  setDateLabel();
+
+  // Laad vandaag
+  await loadToday();
+  await loadStats();
+  await loadRecentEntries();
+
+  // Nav indicator
+  initNav('dashboard');
+
+  // Notif permissie vragen
+  await NotifManager.requestPermission();
+
+  // Event listeners
+  setupMoodPicker();
+  setupSaveBtn();
+  setupMic();
+  setupHealthSync();
+  setupStreakBtn();
+  setupNotifBtn();
+  setupWordCount();
+  setupOnboarding();
+});
+
+function setGreeting() {
+  const h = new Date().getHours();
+  const greetings = h < 6 ? 'Goedenacht 🌙' : h < 12 ? 'Goedemorgen ✨' : h < 18 ? 'Goedemiddag ☀️' : 'Goedenavond 🌇';
+  document.getElementById('greeting-title').textContent = greetings;
+}
+
+function setDateLabel() {
+  const d = new Date();
+  const days = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+  const months = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+  document.getElementById('today-date-label').textContent = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+async function loadToday() {
+  const entry = await Entries.loadDecrypted(currentUID, dateStr());
+  if (entry) {
+    if (entry.mood) {
+      selectedMood = entry.mood;
+      document.querySelectorAll('.mood-btn').forEach(b => {
+        b.classList.toggle('selected', b.dataset.mood === entry.mood);
+      });
+    }
+    if (entry.steps) document.getElementById('steps-input').value = entry.steps;
+    if (entry.text) document.getElementById('journal-text').value = entry.text;
+    updateWordCount();
+    document.getElementById('save-status').textContent = 'Opgeslagen ✓';
+  }
+}
+
+async function loadStats() {
+  const all = await Entries.getAll();
+  const year = new Date().getFullYear();
+  document.getElementById('stat-entries').textContent = all.length;
+  const streak = await StreakManager.getCurrent();
+  document.getElementById('stat-streak-days').textContent = streak;
+  document.getElementById('streak-num').textContent = streak;
+  const yearEntries = await Entries.getAllDecrypted(currentUID);
+  const words = yearEntries.filter(e => e.date.startsWith(year))
+    .reduce((s,e) => s + (e.text?.split(/\s+/).filter(Boolean).length || 0), 0);
+  document.getElementById('stat-words').textContent = words > 999 ? Math.round(words/1000)+'k' : words;
+  // Stappen via Health API
+  const steps = await HealthManager.getStepsToday();
+  if (steps > 0) {
+    document.getElementById('stat-steps-today').textContent = steps.toLocaleString();
+    document.getElementById('steps-input').value = steps;
+  } else {
+    document.getElementById('stat-steps-today').textContent = '—';
+  }
+}
+
+async function loadRecentEntries() {
+  const uid = currentUID;
+  const all = await Entries.getAllDecrypted(uid);
+  const sorted = all.sort((a,b) => b.date.localeCompare(a.date)).slice(0,5);
+  const container = document.getElementById('recent-entries');
+  if (!sorted.length) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:14px;text-align:center;padding:20px 0">Nog geen dagboeken — begin vandaag! 📝</p>';
+    return;
+  }
+  container.innerHTML = sorted.map(e => {
+    const d = new Date(e.date + 'T12:00:00');
+    const months = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+    const label = `${months[d.getMonth()]} ${d.getDate()}`;
+    const preview = e.text ? e.text.slice(0,80) + (e.text.length > 80 ? '…' : '') : 'Geen tekst';
+    return `<div class="card card-sm" style="margin-bottom:10px;display:flex;gap:14px;align-items:flex-start">
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:36px">
+        <span style="font-size:22px">${e.mood || '📝'}</span>
+        <span style="font-size:11px;color:var(--text-muted);margin-top:3px">${label}</span>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;color:var(--text-sub);line-height:1.5;word-break:break-word">${preview}</div>
+        ${e.steps ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px">👟 ${e.steps.toLocaleString()} stappen</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setupMoodPicker() {
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedMood = btn.dataset.mood;
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected', 'bounce'));
+      btn.classList.add('selected', 'bounce');
+      document.getElementById('save-status').textContent = 'Niet opgeslagen';
+    });
+  });
+}
+
+function setupSaveBtn() {
+  document.getElementById('save-btn').addEventListener('click', async () => {
+    const text = document.getElementById('journal-text').value.trim();
+    const steps = parseInt(document.getElementById('steps-input').value) || 0;
+    const btn = document.getElementById('save-btn');
+    btn.textContent = 'Opslaan...';
+    btn.disabled = true;
+    try {
+      await Entries.save(currentUID, { date: dateStr(), mood: selectedMood, steps, text });
+      document.getElementById('save-status').textContent = 'Opgeslagen ✓';
+      btn.textContent = 'Opgeslagen ✓';
+      await loadStats();
+      await loadRecentEntries();
+    } catch(e) {
+      document.getElementById('save-status').textContent = 'Fout bij opslaan';
+      btn.textContent = 'Opslaan ✓';
+    }
+    btn.disabled = false;
+    setTimeout(() => btn.textContent = 'Opslaan ✓', 2000);
+  });
+}
+
+function setupMic() {
+  const micBtn = document.getElementById('mic-btn');
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) { micBtn.style.opacity = '0.3'; return; }
+  recognition = new SpeechRec();
+  recognition.lang = 'nl-NL'; recognition.continuous = false; recognition.interimResults = false;
+  recognition.onresult = e => {
+    const transcript = e.results[0][0].transcript;
+    const ta = document.getElementById('journal-text');
+    ta.value = (ta.value ? ta.value + ' ' : '') + transcript;
+    updateWordCount();
+    document.getElementById('save-status').textContent = 'Niet opgeslagen';
+  };
+  recognition.onend = () => micBtn.classList.remove('listening');
+  micBtn.addEventListener('click', () => {
+    if (micBtn.classList.contains('listening')) { recognition.stop(); }
+    else { micBtn.classList.add('listening'); recognition.start(); }
+  });
+}
+
+function setupHealthSync() {
+  document.getElementById('sync-health-btn').addEventListener('click', async () => {
+    const steps = await HealthManager.getStepsToday();
+    if (steps > 0) {
+      document.getElementById('steps-input').value = steps;
+      document.getElementById('stat-steps-today').textContent = steps.toLocaleString();
+    } else {
+      alert('Health Connect niet beschikbaar op dit apparaat.');
+    }
+  });
+}
+
+function setupStreakBtn() {
+  document.getElementById('streak-btn').addEventListener('click', async () => {
+    const streak = await StreakManager.getCurrent();
+    if (streak > 0) { showStreakBadge(streak); }
+  });
+}
+
+function setupNotifBtn() {
+  document.getElementById('notif-btn').addEventListener('click', async () => {
+    const ok = await NotifManager.requestPermission();
+    document.getElementById('notif-btn').textContent = ok ? '🔔' : '🔕';
+  });
+}
+
+function setupWordCount() {
+  document.getElementById('journal-text').addEventListener('input', () => {
+    updateWordCount();
+    document.getElementById('save-status').textContent = 'Niet opgeslagen';
+  });
+}
+
+function updateWordCount() {
+  const text = document.getElementById('journal-text').value;
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('word-count').textContent = `${words} ${words === 1 ? 'woord' : 'woorden'}`;
+}
+
+function showOnboarding() {
+  const overlay = document.getElementById('onboarding');
+  overlay.classList.add('visible');
+}
+
+function setupOnboarding() {
+  document.querySelectorAll('.age-card').forEach(card => {
+    card.addEventListener('click', async () => {
+      document.querySelectorAll('.age-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      await DB.setMeta('age_group', card.dataset.age);
+      setTimeout(() => {
+        document.getElementById('onboarding').classList.remove('visible');
+      }, 600);
+    });
+  });
+}
+</script>
+</body>
+</html>

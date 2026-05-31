@@ -1,0 +1,26 @@
+{
+  "name": "Wonder Journal",
+  "short_name": "Wonder",
+  "description": "Your private, encrypted daily journal",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#05050b",
+  "theme_color": "#05050b",
+  "orientation": "portrait-primary",
+  "lang": "nl",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Journal",
+      "short_name": "Dagboek",
+      "description": "Voeg snel een dagboekbericht toe",
+      "url": "/dashboard/dashboard.html?action=journal",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["health", "lifestyle", "productivity"],
+  "screenshots": []
+}

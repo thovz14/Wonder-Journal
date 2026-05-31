@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Wonder Journal - Login</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="login-wrapper">
+        <div id="auth-welcome-screen" class="auth-card active">
+            <div class="brand-header">
+                <span class="lightning-icon">📆</span>
+                <h1>Wonder Journal</h1>
+                <p>Welcome! Please choose how to connect</p>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-wonder" id="btn-show-wonder">
+                    Sign in with Wonder⚡
+                </button>
+                
+                <div class="separator">OR</div>
+                
+                <button class="btn btn-google" id="btn-google-welcome">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo" class="google-icon">
+                    Continue with Google
+                </button>
+            </div>
+        </div>
+
+        <div id="auth-wonder-screen" class="auth-card">
+            <div class="brand-header">
+                <div class="logo-row">
+                    <span class="lightning-icon-small">⚡</span>
+                    <h1>Wonder ID</h1>
+                </div>
+                <p class="subtitle">Connect to Wonderlight Studios</p>
+            </div>
+
+            <form id="wonder-login-form">
+                <div class="input-group">
+                    <label for="email">EMAIL ADDRESS</label>
+                    <input type="email" id="email" placeholder="name@example.com" required autocomplete="email">
+                </div>
+
+                <div class="input-group">
+                    <label for="password">PASSWORD</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn btn-submit">Sign In</button>
+            </form>
+
+            <div class="separator">OR</div>
+
+            <button class="btn btn-google" id="btn-google-wonder">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo" class="google-icon">
+                Continue with Google
+            </button>
+
+            <div class="auth-footer">
+                <a href="#" class="footer-link" id="link-forgot-password">Forgot Password?</a>
+                <p class="footer-text">Don't have an account? <a href="#" class="footer-link highlighted" id="link-sign-up">Sign Up</a></p>
+            </div>
+            
+            <button class="btn-back" id="btn-back-to-welcome">← Back</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    
+    <script src="register.js"></script>
+</body>
+</html>

@@ -169,9 +169,6 @@
   </ul>
 </nav>
 
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="app.js"></script>
 <script>
 const MOODS = ['😊','😄','😌','😐','😞','😢','😰','😡','🥱','🤒'];
@@ -180,27 +177,38 @@ let currentUID = null;
 let recognition = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!Session.requireAuth()) return;
+  if (!Session.requireAuth('index.html')) return;
   currentUID = Session.getUID();
-  FireStore.init(currentUID);
+
+  const applyAvatar = (userData) => {
+    const avatar = document.getElementById('header-avatar');
+    if (userData?.avatar) {
+      const cleanAvatar = userData.avatar.replace(/\s/g, '');
+      avatar.style.backgroundImage = `url("${cleanAvatar}")`;
+      avatar.style.backgroundSize = 'cover';
+      avatar.style.backgroundPosition = 'center';
+      avatar.style.backgroundRepeat = 'no-repeat';
+      avatar.textContent = '';
+    } else if (userData?.name) {
+      avatar.style.backgroundImage = 'none';
+      avatar.textContent = userData.name[0].toUpperCase();
+    }
+  };
+
+  // Initiele render o.b.v. huidige cache (voor snelle laadtijd)
+  applyAvatar(Session.getUser());
+
+  // Voer live sync uit op achtergrond en pas ui aan
+  Session.refreshLive().then(() => {
+    applyAvatar(Session.getUser());
+    // Refresh stats if entries changed
+    loadStats();
+    loadRecentEntries();
+  });
 
   // Onboarding check
   const ageGroup = await DB.getMeta('age_group');
   if (!ageGroup) showOnboarding();
-
-  // Auth
-  if (!firebase.apps?.length) firebase.initializeApp(FIREBASE_CONFIG);
-  firebase.auth().onAuthStateChanged(u => {
-    if (!u) location.href = '../index.html';
-    // Profielfoto in header
-    const avatar = document.getElementById('header-avatar');
-    if (u?.photoURL) {
-      avatar.style.cssText += `;background-image:url(${u.photoURL});background-size:cover;background-position:center;`;
-      avatar.textContent = '';
-    } else if (u?.displayName) {
-      avatar.textContent = u.displayName[0].toUpperCase();
-    }
-  });
 
   // Thema + datum
   ThemeManager.init();

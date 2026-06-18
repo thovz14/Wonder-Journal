@@ -302,38 +302,42 @@
   </ul>
 </nav>
 
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="app.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!Session.requireAuth()) return;
-  if (!firebase.apps?.length) firebase.initializeApp(FIREBASE_CONFIG);
+  if (!Session.requireAuth('index.html')) return;
 
   ThemeManager.init();
   initNav('settings');
 
-  firebase.auth().onAuthStateChanged(u => {
-    if (!u) { location.href = '../index.html'; return; }
+  function updateProfileUI(u) {
+    if (!u) return;
     document.getElementById('profile-email').textContent = u.email || '';
-    const displayName = u.displayName || u.email?.split('@')[0] || 'Wonder Gebruiker';
+    const displayName = u.name || u.email?.split('@')[0] || 'Wonder Gebruiker';
     document.getElementById('profile-name').textContent = displayName;
     const avatar = document.getElementById('avatar-display');
-    if (u.photoURL) {
-      // Maak een img element aan voor de foto
-      avatar.style.backgroundImage = `url('${u.photoURL}')`;
+    if (u.avatar) {
+      const cleanAvatar = u.avatar.replace(/\s/g, '');
+      avatar.style.backgroundImage = `url("${cleanAvatar}")`;
       avatar.style.backgroundSize = 'cover';
       avatar.style.backgroundPosition = 'center';
       avatar.style.backgroundRepeat = 'no-repeat';
       avatar.textContent = '';
     } else {
-      // Fallback: initialen
       avatar.textContent = displayName[0]?.toUpperCase() || '🧑';
       avatar.style.fontSize = '32px';
       avatar.style.fontWeight = '800';
       avatar.style.fontFamily = 'Nunito, sans-serif';
+      avatar.style.backgroundImage = 'none';
     }
+  }
+
+  // 1. Snelle weergave uit cache
+  updateProfileUI(Session.getUser());
+
+  // 2. Live update op de achtergrond
+  Session.refreshLive().then(() => {
+    updateProfileUI(Session.getUser());
   });
 
   // Theme toggle initialisatie
@@ -385,9 +389,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Logout
   document.getElementById('btn-logout').addEventListener('click', async () => {
     if (!confirm('Weet je zeker dat je wilt uitloggen?')) return;
-    await firebase.auth().signOut();
     localStorage.removeItem('wonderUser');
-    location.href = '../index.html';
+    location.href = 'index.html';
   });
 
   // Avatar edit (placeholder)

@@ -116,9 +116,6 @@
   </ul>
 </nav>
 
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="app.js"></script>
 <script>
 const MONTHS = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
@@ -129,10 +126,8 @@ let uid = null;
 let allEntries = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!Session.requireAuth()) return;
+  if (!Session.requireAuth('index.html')) return;
   uid = Session.getUID();
-  if (!firebase.apps?.length) firebase.initializeApp(FIREBASE_CONFIG);
-  firebase.auth().onAuthStateChanged(u => { if (!u) location.href='../index.html'; });
   ThemeManager.init();
   initNav('calendar');
   allEntries = await DB.getAll('entries');

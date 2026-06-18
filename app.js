@@ -2,15 +2,8 @@
 //  Wonder Journal — app.js (gedeeld door alle pagina's)
 // ═══════════════════════════════════════════════
 
-// ─── FIREBASE CONFIG ───
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBRpbQS2jN_Zp7XzKWYkM0Png4K4yzA9oc",
-  authDomain: "familygames-3d0d2.firebaseapp.com",
-  projectId: "familygames-3d0d2",
-  storageBucket: "familygames-3d0d2.firebasestorage.app",
-  messagingSenderId: "326491635543",
-  appId: "1:326491635543:web:311ae892e5e3934cc20812"
-};
+// ─── POCKETBASE CONFIG ───
+const PB_URL = 'http://192.168.88.73:8090';
 
 // ─── THEME ───
 const ThemeManager = {
@@ -25,7 +18,6 @@ const ThemeManager = {
     if (overlay) {
       overlay.style.setProperty('--tx', x + 'px');
       overlay.style.setProperty('--ty', y + 'px');
-      // set overlay to next theme bg color
       overlay.style.background = next === 'light' ? '#f0ebe0' : '#05050b';
       overlay.classList.add('expanding');
       setTimeout(() => {
@@ -122,37 +114,56 @@ const DB = {
   }
 };
 
-// ─── FIREBASE SYNC (lazy init) ───
-const FireStore = {
-  _db: null,
-  _uid: null,
-  init(uid) {
-    this._uid = uid;
-    if (!firebase.apps?.length) firebase.initializeApp(FIREBASE_CONFIG);
-    if (typeof firebase.firestore === 'function') {
-      this._db = firebase.firestore();
+// ─── POCKETBASE SYNC ───
+const PBSync = {
+  async _req(method, path, body) {
+    const user = Session.getUser();
+    const token = user?.token || '';
+    const opts = {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': token }
+    };
+    if (body) opts.body = JSON.stringify(body);
+    try {
+      const res = await fetch(`${PB_URL}/api/${path}`, opts);
+      if (!res.ok) throw new Error(`PB ${res.status}`);
+      return await res.json();
+    } catch(e) {
+      console.warn('PocketBase request failed:', e.message);
+      return null;
     }
   },
-  async syncEntry(entry, encryptedText) {
-    if (!this._db || !this._uid) return;
-    try {
-      await this._db.collection('users').doc(this._uid)
-        .collection('entries').doc(entry.date).set({
-          date: entry.date,
-          mood: entry.mood,
-          steps: entry.steps,
-          text_enc: encryptedText,    // volledig versleuteld
-          ts: Date.now()
-        });
-    } catch(e) { console.warn('Firestore sync failed:', e.message); }
+
+  async syncEntry(uid, entry, encryptedText) {
+    // Zoek bestaande record op date + user
+    const search = await this._req('GET',
+      `collections/entries/records?filter=(user="${uid}" %26%26 date="${entry.date}")&perPage=1`
+    );
+    const existing = search?.items?.[0];
+    const data = {
+      user: uid,
+      date: entry.date,
+      mood: entry.mood || '',
+      steps: entry.steps || 0,
+      text_enc: encryptedText || '',
+      ts: entry.ts || Date.now()
+    };
+    if (existing) {
+      await this._req('PATCH', `collections/entries/records/${existing.id}`, data);
+    } else {
+      await this._req('POST', 'collections/entries/records', data);
+    }
   },
-  async fetchAll() {
-    if (!this._db || !this._uid) return [];
-    try {
-      const snap = await this._db.collection('users').doc(this._uid)
-        .collection('entries').get();
-      return snap.docs.map(d => d.data());
-    } catch { return []; }
+
+  async fetchAll(uid) {
+    const result = await this._req('GET',
+      `collections/entries/records?filter=(user="${uid}")&perPage=500`
+    );
+    return result?.items || [];
+  },
+
+  async fetchUser(uid) {
+    return await this._req('GET', `collections/users/records/${uid}`);
   }
 };
 
@@ -162,13 +173,64 @@ const Session = {
     try { return JSON.parse(localStorage.getItem('wonderUser') || 'null'); } catch { return null; }
   },
   getUID() { return this.getUser()?.wonderId || null; },
-  requireAuth(redirectPath = '../index.html') {
+  requireAuth(redirectPath = 'index.html') {
     const u = this.getUser();
     if (!u?.isLoggedIn || !u?.wonderId) {
       window.location.href = redirectPath;
       return false;
     }
     return true;
+  },
+  async refreshLive() {
+    const u = this.getUser();
+    if (!u?.wonderId) return;
+    try {
+      // 1. Haal verse user data op
+      const record = await PBSync.fetchUser(u.wonderId);
+      if (record) {
+        let avatarVal = record.profilePicSelection;
+        // Als profilePicSelection bijv. 'avatar1' is (zonder extensie of data/http), gebruik dan record.avatar
+        if (avatarVal && !avatarVal.startsWith('http') && !avatarVal.startsWith('data:') && !avatarVal.includes('.')) {
+          avatarVal = record.avatar || '';
+        } else if (!avatarVal) {
+          avatarVal = record.avatar || '';
+        }
+        
+        if (avatarVal && avatarVal.startsWith('data:')) {
+          // Base64 image, do nothing
+        } else if (avatarVal && !avatarVal.startsWith('http') && avatarVal.length > 5 && avatarVal.includes('.')) {
+          avatarVal = `${PB_URL}/api/files/users/${record.id}/${avatarVal}?token=${u.token}`;
+        }
+        
+        // Check of foto een emoji of data url is
+        if (avatarVal && (avatarVal.match(/[\u{1F300}-\u{1F6FF}]/u) || avatarVal.startsWith('data:'))) {
+           // It's an emoji or base64 data, leave it
+        } else if (avatarVal) {
+          // voeg een cache-buster toe zodat hij altijd de nieuwste versie forceert
+          avatarVal = avatarVal + (avatarVal.includes('?') ? '&' : '?') + 't=' + Date.now();
+        }
+        
+        u.name = record.name || record.email?.split('@')[0] || 'Wonder Gebruiker';
+        u.avatar = avatarVal;
+        localStorage.setItem('wonderUser', JSON.stringify(u));
+      }
+      
+      // 2. Haal verse entries op uit de cloud en zet in IndexedDB
+      const cloudEntries = await PBSync.fetchAll(u.wonderId);
+      for (const ce of cloudEntries) {
+        const local = await DB.get('entries', ce.date);
+        if (!local || local.ts < ce.ts) {
+          // Cloud is nieuwer of bestaat niet lokaal -> opslaan lokaal
+          await DB.put('entries', {
+            date: ce.date,
+            mood: ce.mood,
+            steps: ce.steps,
+            text_enc: ce.text_enc,
+            ts: ce.ts
+          });
+        }
+      }
+    } catch(e) { console.warn('Live refresh failed', e); }
   }
 };
 
@@ -181,7 +243,7 @@ const Entries = {
     const encText = text ? await Crypto.encrypt(uid, text) : '';
     const entry = { date, mood, steps: steps || 0, text_enc: encText, ts: Date.now() };
     await DB.put('entries', entry);
-    await FireStore.syncEntry(entry, encText);
+    await PBSync.syncEntry(uid, entry, encText);
     await StreakManager.update();
     await NotifManager.scheduleReminder();
   },
@@ -304,7 +366,6 @@ if ('serviceWorker' in navigator) {
     if (e.data?.type === 'CHECK_REMINDER') {
       const entry = await Entries.load(dateStr());
       if (!entry || !entry.text_enc) {
-        // Toon lokale notificatie als er geen entry is
         if (Notification.permission === 'granted') {
           const msgs = [
             { title: '✨ Wonder Journal', body: 'Hoe was je dag? Schrijf even iets.' },
@@ -374,12 +435,25 @@ function updateNavIndicator(activeBtn) {
 
 function initNav(currentPage) {
   const pages = {
-    dashboard: 'nav-dashboard',
-    insights:  'nav-insights',
-    calendar:  'nav-calendar',
-    settings:  'nav-settings'
+    dashboard: { id: 'nav-dashboard', href: 'dashboard.html' },
+    insights:  { id: 'nav-insights',  href: 'insights.html'  },
+    calendar:  { id: 'nav-calendar',  href: 'calendar.html'  },
+    settings:  { id: 'nav-settings',  href: 'settings.html'  }
   };
-  const activeId = pages[currentPage];
+
+  Object.entries(pages).forEach(([page, cfg]) => {
+    const btn = document.getElementById(cfg.id);
+    if (!btn) return;
+    // Vervang de inline onclick met een cache-busting navigatie
+    btn.onclick = null;
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (page === currentPage) return; // al op deze pagina
+      window.location.href = `${cfg.href}?v=${Date.now()}`;
+    });
+  });
+
+  const activeId = pages[currentPage]?.id;
   const activeBtn = document.getElementById(activeId);
   if (activeBtn) {
     activeBtn.classList.add('active');
@@ -390,7 +464,6 @@ function initNav(currentPage) {
 // ─── HEALTH STEPS API ───
 const HealthManager = {
   async getStepsToday() {
-    // Web Health API (Chrome Android / Samsung Health bridge)
     if ('health' in navigator) {
       try {
         const r = await navigator.health.query({

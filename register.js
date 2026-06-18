@@ -1,33 +1,19 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyBRpbQS2jN_Zp7XzKWYkM0Png4K4yzA9oc",
-    authDomain: "familygames-3d0d2.firebaseapp.com",
-    databaseURL: "https://familygames-3d0d2-default-rtdb.firebaseio.com",
-    projectId: "familygames-3d0d2",
-    storageBucket: "familygames-3d0d2.firebasestorage.app",
-    messagingSenderId: "326491635543",
-    appId: "1:326491635543:web:311ae892e5e3934cc20812",
-    measurementId: "G-8PW38E5X5J"
-};
+// ─── POCKETBASE AUTH ───
+const PB_URL = 'http://192.168.88.73:8090';
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
+async function pbRequest(method, path, body) {
+    const opts = {
+        method,
+        headers: { 'Content-Type': 'application/json' }
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(`${PB_URL}/api/${path}`, opts);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || `Error ${res.status}`);
+    return data;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // Check direct of de gebruiker terugkomt van de Google Redirect login flow
-    auth.getRedirectResult()
-        .then((result) => {
-            if (result.user) {
-                console.log("Successfully authenticated via Google Redirect:", result.user.email);
-                saveUserSession(result.user);
-                window.location.href = "dashboard/dashboard.html";
-            }
-        })
-        .catch((error) => {
-            console.error("Google redirect authentication failed:", error.message);
-            alert("Google Sign-In failed: " + error.message);
-        });
 
     const welcomeScreen = document.getElementById('auth-welcome-screen');
     const wonderScreen = document.getElementById('auth-wonder-screen');
@@ -36,10 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnBackToWelcome = document.getElementById('btn-back-to-welcome');
 
     const wonderForm = document.getElementById('wonder-login-form');
-    const btnGoogleWelcome = document.getElementById('btn-google-welcome');
-    const btnGoogleWonder = document.getElementById('btn-google-wonder');
     const linkForgotPassword = document.getElementById('link-forgot-password');
     const linkSignUp = document.getElementById('link-sign-up');
+
+    // Google-knoppen verbergen (PocketBase OAuth vereist extra configuratie)
+    const btnGoogleWelcome = document.getElementById('btn-google-welcome');
+    const btnGoogleWonder = document.getElementById('btn-google-wonder');
+    const separatorEl = document.querySelector('.separator');
+    if (btnGoogleWelcome) btnGoogleWelcome.style.display = 'none';
+    if (btnGoogleWonder) btnGoogleWonder.style.display = 'none';
 
     if (btnShowWonder) {
         btnShowWonder.addEventListener('click', () => {
@@ -56,72 +47,96 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (wonderForm) {
-        wonderForm.addEventListener('submit', (event) => {
+        wonderForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
+            const submitBtn = wonderForm.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'Bezig...';
+            submitBtn.disabled = true;
 
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    saveUserSession(userCredential.user);
-                    window.location.href = "dashboard/dashboard.html";
-                })
-                .catch((error) => {
-                    alert("Login failed: " + error.message);
+            try {
+                const result = await pbRequest('POST', 'collections/users/auth-with-password', {
+                    identity: email,
+                    password: password
                 });
+                saveUserSession(result);
+                window.location.href = 'dashboard.html';
+            } catch(error) {
+                alert('Inloggen mislukt: ' + error.message);
+                submitBtn.textContent = 'Sign In';
+                submitBtn.disabled = false;
+            }
         });
     }
 
-    // Geoptimaliseerde mobiele redirect in plaats van pop-up
-    const handleGoogleSignIn = () => {
-        auth.signInWithRedirect(googleProvider);
-    };
-
-    if (btnGoogleWelcome) btnGoogleWelcome.addEventListener('click', handleGoogleSignIn);
-    if (btnGoogleWonder) btnGoogleWonder.addEventListener('click', handleGoogleSignIn);
-
     if (linkForgotPassword) {
-        linkForgotPassword.addEventListener('click', (e) => {
+        linkForgotPassword.addEventListener('click', async (e) => {
             e.preventDefault();
-            const email = prompt("Please enter your email address to reset your password:");
+            const email = prompt('Voer je e-mailadres in om je wachtwoord te herstellen:');
             if (!email) return;
-
-            auth.sendPasswordResetEmail(email)
-                .then(() => {
-                    alert("Password reset email sent!");
-                })
-                .catch((error) => {
-                    alert("Error: " + error.message);
-                });
+            try {
+                await pbRequest('POST', 'collections/users/request-password-reset', { email });
+                alert('Wachtwoord-herstelmail verzonden! Controleer je inbox.');
+            } catch(error) {
+                alert('Fout: ' + error.message);
+            }
         });
     }
 
     if (linkSignUp) {
-        linkSignUp.addEventListener('click', (e) => {
+        linkSignUp.addEventListener('click', async (e) => {
             e.preventDefault();
-            const email = prompt("Enter your new Wonder ID email:");
-            const password = prompt("Enter a strong password:");
-            
+            const email = prompt('Voer je nieuwe e-mailadres in:');
+            const password = prompt('Kies een sterk wachtwoord (min. 8 tekens):');
+
             if (email && password) {
-                auth.createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        alert("Account created successfully!");
-                        saveUserSession(userCredential.user);
-                        window.location.href = "dashboard/dashboard.html";
-                    })
-                    .catch((error) => {
-                        alert("Registration failed: " + error.message);
+                try {
+                    // Account aanmaken
+                    await pbRequest('POST', 'collections/users/records', {
+                        email,
+                        password,
+                        passwordConfirm: password,
+                        name: email.split('@')[0]
                     });
+                    // Direct inloggen
+                    const result = await pbRequest('POST', 'collections/users/auth-with-password', {
+                        identity: email,
+                        password: password
+                    });
+                    alert('Account aangemaakt!');
+                    saveUserSession(result);
+                    window.location.href = 'dashboard.html';
+                } catch(error) {
+                    alert('Registratie mislukt: ' + error.message);
+                }
             }
         });
     }
 });
 
-function saveUserSession(user) {
+function saveUserSession(authResult) {
+    const record = authResult.record;
+    let avatarVal = record.profilePicSelection;
+    if (avatarVal && !avatarVal.startsWith('http') && !avatarVal.startsWith('data:') && !avatarVal.includes('.')) {
+      avatarVal = record.avatar || '';
+    } else if (!avatarVal) {
+      avatarVal = record.avatar || '';
+    }
+    
+    if (avatarVal && avatarVal.startsWith('data:')) {
+        // Base64 image, skip
+    } else if (avatarVal && !avatarVal.startsWith('http') && avatarVal.length > 5 && avatarVal.includes('.')) {
+        // PocketBase file URL: /api/files/collectionIdOrName/recordId/filename
+        avatarVal = `${PB_URL}/api/files/users/${record.id}/${avatarVal}?token=${authResult.token}`;
+    }
     const userAccount = {
         isLoggedIn: true,
-        wonderId: user.uid,
-        email: user.email,
+        wonderId: record.id,
+        email: record.email,
+        name: record.name || record.email?.split('@')[0] || 'Wonder Gebruiker',
+        avatar: avatarVal,
+        token: authResult.token,
         lastSync: new Date().getTime()
     };
     localStorage.setItem('wonderUser', JSON.stringify(userAccount));

@@ -136,9 +136,6 @@
   </ul>
 </nav>
 
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="app.js"></script>
 <script>
 const MOOD_NAMES = {
@@ -151,13 +148,10 @@ let uid = null;
 let allEntries = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!Session.requireAuth()) return;
+  if (!Session.requireAuth('index.html')) return;
   uid = Session.getUID();
-  if (!firebase.apps?.length) firebase.initializeApp(FIREBASE_CONFIG);
   ThemeManager.init();
   initNav('insights');
-
-  firebase.auth().onAuthStateChanged(u => { if (!u) location.href='../index.html'; });
 
   allEntries = await Entries.getAllDecrypted(uid);
   renderAll();

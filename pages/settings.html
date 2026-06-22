@@ -6,8 +6,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Wonder Journal — Instellingen</title>
-  <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="app.css">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="stylesheet" href="../css/app.css">
   <style>
     /* ── Premium Sun/Moon Theme Toggle ── */
     .theme-toggle-wrap {
@@ -302,10 +302,10 @@
   </ul>
 </nav>
 
-<script src="app.js"></script>
+<script src="../js/app.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!Session.requireAuth('index.html')) return;
+  if (!Session.requireAuth('../index.html')) return;
 
   ThemeManager.init();
   initNav('settings');
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-logout').addEventListener('click', async () => {
     if (!confirm('Weet je zeker dat je wilt uitloggen?')) return;
     localStorage.removeItem('wonderUser');
-    location.href = 'index.html';
+    location.href = '../index.html';
   });
 
   // Avatar edit (placeholder)

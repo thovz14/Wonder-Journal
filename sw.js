@@ -1,15 +1,15 @@
 // Wonder Journal - Service Worker v1
-const CACHE = 'wonder-v3';
+const CACHE = 'wonder-v5';
 const ASSETS = [
   '/',
   '/index.html',
-  '/index.css',
-  '/dashboard.html',
-  '/insights.html',
-  '/calendar.html',
-  '/settings.html',
-  '/app.css',
-  '/app.js',
+  '/css/index.css',
+  '/pages/dashboard.html',
+  '/pages/insights.html',
+  '/pages/calendar.html',
+  '/pages/settings.html',
+  '/css/app.css',
+  '/js/app.js',
 ];
 
 // Reminder texts to rotate
@@ -62,7 +62,7 @@ self.addEventListener('push', e => {
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
       vibrate: [200, 100, 200],
-      data: { url: '/dashboard.html' },
+      data: { url: '/pages/dashboard.html' },
       actions: [{ action: 'open', title: 'Schrijven' }]
     })
   );
@@ -70,7 +70,7 @@ self.addEventListener('push', e => {
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const url = e.notification.data?.url || '/dashboard.html';
+  const url = e.notification.data?.url || '/pages/dashboard.html';
   e.waitUntil(
     clients.matchAll({ type: 'window' }).then(list => {
       for (const c of list) {
@@ -103,7 +103,7 @@ self.addEventListener('message', e => {
     self.registration.showNotification('🎉 Jouw Wonder Jaar in Beeld!', {
       body: e.data.body || 'Bekijk je persoonlijke jaaroverzicht — jouw verhaal van dit jaar.',
       icon: '/icons/icon-192.png',
-      data: { url: '/insights.html?view=yearwrap' },
+      data: { url: '/pages/insights.html?view=yearwrap' },
       requireInteraction: true
     });
   }

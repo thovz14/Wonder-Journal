@@ -1,5 +1,5 @@
 // ─── POCKETBASE AUTH ───
-const PB_URL = 'http://192.168.88.73:8090';
+const PB_URL = 'http://192.168.200.15:8090';
 
 async function pbRequest(method, path, body) {
     const opts = {
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     password: password
                 });
                 saveUserSession(result);
-                window.location.href = 'dashboard.html';
+                window.location.href = 'pages/dashboard.html';
             } catch(error) {
                 alert('Inloggen mislukt: ' + error.message);
                 submitBtn.textContent = 'Sign In';
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     alert('Account aangemaakt!');
                     saveUserSession(result);
-                    window.location.href = 'dashboard.html';
+                    window.location.href = 'pages/dashboard.html';
                 } catch(error) {
                     alert('Registratie mislukt: ' + error.message);
                 }

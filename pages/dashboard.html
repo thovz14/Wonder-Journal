@@ -7,8 +7,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Wonder Journal">
   <title>Wonder Journal</title>
-  <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="app.css">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="stylesheet" href="../css/app.css">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
@@ -169,7 +169,7 @@
   </ul>
 </nav>
 
-<script src="app.js"></script>
+<script src="../js/app.js"></script>
 <script>
 const MOODS = ['😊','😄','😌','😐','😞','😢','😰','😡','🥱','🤒'];
 let selectedMood = null;
@@ -177,7 +177,7 @@ let currentUID = null;
 let recognition = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!Session.requireAuth('index.html')) return;
+  if (!Session.requireAuth('../index.html')) return;
   currentUID = Session.getUID();
 
   const applyAvatar = (userData) => {

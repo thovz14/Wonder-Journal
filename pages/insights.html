@@ -6,8 +6,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Wonder Journal — Insights</title>
-  <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="app.css">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="stylesheet" href="../css/app.css">
 </head>
 <body>
 
@@ -136,7 +136,7 @@
   </ul>
 </nav>
 
-<script src="app.js"></script>
+<script src="../js/app.js"></script>
 <script>
 const MOOD_NAMES = {
   '😊':'Blij','😄':'Vrolijk','😌':'Rustig','😐':'Neutraal','😞':'Down',
@@ -148,7 +148,7 @@ let uid = null;
 let allEntries = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!Session.requireAuth('index.html')) return;
+  if (!Session.requireAuth('../index.html')) return;
   uid = Session.getUID();
   ThemeManager.init();
   initNav('insights');

@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════
 
 // ─── POCKETBASE CONFIG ───
-const PB_URL = 'http://192.168.88.73:8090';
+const PB_URL = 'http://192.168.200.15:8090';
 
 // ─── THEME ───
 const ThemeManager = {
@@ -173,7 +173,7 @@ const Session = {
     try { return JSON.parse(localStorage.getItem('wonderUser') || 'null'); } catch { return null; }
   },
   getUID() { return this.getUser()?.wonderId || null; },
-  requireAuth(redirectPath = 'index.html') {
+  requireAuth(redirectPath = '../index.html') {
     const u = this.getUser();
     if (!u?.isLoggedIn || !u?.wonderId) {
       window.location.href = redirectPath;

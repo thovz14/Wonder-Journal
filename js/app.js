@@ -144,7 +144,7 @@ const PBSync = {
       user: uid,
       date: entry.date,
       mood: entry.mood || '',
-      steps: entry.steps || 0,
+      steps: 0,
       text_enc: encryptedText || '',
       ts: entry.ts || Date.now()
     };
@@ -224,7 +224,7 @@ const Session = {
           await DB.put('entries', {
             date: ce.date,
             mood: ce.mood,
-            steps: ce.steps,
+            steps: 0,
             text_enc: ce.text_enc,
             ts: ce.ts
           });
@@ -239,9 +239,9 @@ const dateStr = (d = new Date()) =>
   `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
 const Entries = {
-  async save(uid, { date, mood, steps, text }) {
+  async save(uid, { date, mood, text }) {
     const encText = text ? await Crypto.encrypt(uid, text) : '';
-    const entry = { date, mood, steps: steps || 0, text_enc: encText, ts: Date.now() };
+    const entry = { date, mood, steps: 0, text_enc: encText, ts: Date.now() };
     await DB.put('entries', entry);
     await PBSync.syncEntry(uid, entry, encText);
     await StreakManager.update();
@@ -338,10 +338,29 @@ const NotifManager = {
     return perm === 'granted';
   },
   async scheduleReminder() {
-    if ('serviceWorker' in navigator) {
-      const reg = await navigator.serviceWorker.ready;
-      reg.active?.postMessage({ type: 'SCHEDULE_REMINDER' });
+    if (!('serviceWorker' in navigator) || Notification.permission !== 'granted') return;
+    const reg = await navigator.serviceWorker.ready;
+    const target = new Date();
+    target.setHours(21, 0, 0, 0);
+    if (new Date() > target) target.setDate(target.getDate() + 1);
+
+    if ('showTrigger' in Notification.prototype) {
+      try {
+        const existing = await reg.getNotifications({ tag: 'daily-reminder', includeTriggered: true });
+        existing.forEach(n => n.close());
+        reg.showNotification('✨ Wonder Journal', {
+          body: 'De dag loopt bijna ten einde. Hoe was je dag? Schrijf even een paar zinnen.',
+          icon: '/icons/icon-192.png',
+          tag: 'daily-reminder',
+          data: { url: '/pages/dashboard.html' },
+          showTrigger: new TimestampTrigger(target.getTime())
+        });
+        return;
+      } catch (e) {
+        console.warn('showTrigger not supported or failed', e);
+      }
     }
+    reg.active?.postMessage({ type: 'SCHEDULE_REMINDER' });
   },
   async checkYearEnd() {
     const now = new Date();
@@ -360,25 +379,6 @@ const NotifManager = {
   }
 };
 
-// Navigator: luister op CHECK_REMINDER van SW
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('message', async e => {
-    if (e.data?.type === 'CHECK_REMINDER') {
-      const entry = await Entries.load(dateStr());
-      if (!entry || !entry.text_enc) {
-        if (Notification.permission === 'granted') {
-          const msgs = [
-            { title: '✨ Wonder Journal', body: 'Hoe was je dag? Schrijf even iets.' },
-            { title: '🔥 Streak Alert!', body: 'Schrijf nu om je streak te bewaren!' },
-            { title: '🌙 Wonder Journal', body: 'De dag loopt bijna ten einde...' },
-          ];
-          const m = msgs[Math.floor(Math.random()*msgs.length)];
-          new Notification(m.title, { body: m.body, icon: '/icons/icon-192.png' });
-        }
-      }
-    }
-  });
-}
 
 // ─── WEBAUTHN ───
 const WebAuthnManager = {
@@ -461,22 +461,6 @@ function initNav(currentPage) {
   }
 }
 
-// ─── HEALTH STEPS API ───
-const HealthManager = {
-  async getStepsToday() {
-    if ('health' in navigator) {
-      try {
-        const r = await navigator.health.query({
-          startTime: new Date(new Date().setHours(0,0,0,0)).toISOString(),
-          endTime: new Date().toISOString(),
-          metrics: ['steps']
-        });
-        return r?.steps?.total || 0;
-      } catch { return 0; }
-    }
-    return 0;
-  }
-};
 
 // ─── JAAR OVERZICHT ───
 async function showYearWrap(uid) {
@@ -484,7 +468,7 @@ async function showYearWrap(uid) {
   const year = new Date().getFullYear();
   const yearEntries = entries.filter(e => e.date.startsWith(year));
   const totalDays = yearEntries.length;
-  const totalSteps = yearEntries.reduce((s, e) => s + (e.steps || 0), 0);
+
   const moodCount = {};
   yearEntries.forEach(e => { if (e.mood) moodCount[e.mood] = (moodCount[e.mood]||0)+1; });
   const topMood = Object.entries(moodCount).sort((a,b)=>b[1]-a[1])[0]?.[0] || '😊';
@@ -510,8 +494,7 @@ async function showYearWrap(uid) {
       <span class="yearwrap-emoji">${topMood}</span>
       <div class="yearwrap-title">Jouw ${year} in Beeld</div>
       <p class="yearwrap-body" style="margin-bottom:24px">
-        Je schreef <strong>${totalDays} dagboekpagina's</strong> en liep gemiddeld
-        <strong>${totalDays ? Math.round(totalSteps/totalDays).toLocaleString() : 0} stappen</strong> per dag.
+        Je schreef <strong>${totalDays} dagboekpagina's</strong>.
         Je meest voorkomende gevoel was ${topMood}.
       </p>
       ${advice ? `<div class="insight-card"><p>💜 ${advice}</p></div>` : ''}
@@ -520,20 +503,6 @@ async function showYearWrap(uid) {
   overlay.classList.add('open');
 }
 
-// ─── INSIGHTS BEREKENINGEN ───
-function calcCorrelation(entries) {
-  const valid = entries.filter(e => e.steps > 0 && e.mood);
-  if (valid.length < 3) return null;
-  const moodScore = { '😊':5,'😄':5,'😌':4,'😐':3,'😞':2,'😢':1,'😰':1,'😡':2,'🥱':3,'🤒':2 };
-  const xs = valid.map(e => e.steps);
-  const ys = valid.map(e => moodScore[e.mood] || 3);
-  const n = xs.length;
-  const meanX = xs.reduce((a,b)=>a+b,0)/n;
-  const meanY = ys.reduce((a,b)=>a+b,0)/n;
-  const num = xs.reduce((s,x,i)=>s+(x-meanX)*(ys[i]-meanY),0);
-  const den = Math.sqrt(xs.reduce((s,x)=>s+(x-meanX)**2,0)*ys.reduce((s,y)=>s+(y-meanY)**2,0));
-  return den === 0 ? 0 : (num/den).toFixed(2);
-}
 
 function getMoodDistribution(entries) {
   const dist = {};

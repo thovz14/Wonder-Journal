@@ -217,17 +217,7 @@
   <div class="settings-section">
     <div class="settings-section-title">Gezondheid & Data</div>
     <div class="card" style="padding:0 16px">
-      <div class="toggle-row">
-        <div class="toggle-info">
-          <strong>Sync Health Connect</strong>
-          <span>Stappen automatisch ophalen</span>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="health-toggle">
-          <div class="toggle-track"></div>
-          <div class="toggle-thumb"></div>
-        </label>
-      </div>
+
       <div class="toggle-row">
         <div class="toggle-info">
           <strong>Dagelijkse Herinnering</strong>
@@ -268,6 +258,13 @@
           <strong>Versie</strong>
           <span>Wonder Journal v1.0</span>
         </div>
+      <div class="settings-row" id="test-notif-row" style="display:none">
+        <div class="settings-row-icon" style="background:rgba(236,72,153,0.12)">🧪</div>
+        <div class="settings-row-info">
+          <strong>Test Notificatie</strong>
+          <span>Stuur een test push notificatie</span>
+        </div>
+        <span class="settings-row-arrow">›</span>
       </div>
     </div>
   </div>
@@ -365,12 +362,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Health toggle
-  const healthEnabled = localStorage.getItem('wj_health') === 'true';
-  document.getElementById('health-toggle').checked = healthEnabled;
-  document.getElementById('health-toggle').addEventListener('change', e => {
-    localStorage.setItem('wj_health', e.target.checked);
-  });
 
   // Notif toggle
   const notifEnabled = Notification.permission === 'granted';
@@ -397,6 +388,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('avatar-edit-btn').addEventListener('click', () => {
     alert('Ga naar accounts.wonderdev.nl om je profielfoto te wijzigen.');
   });
+
+  // Admin test notification
+  if (Session.getUser()?.email === 'thomas@vzunderd.nl') {
+    const testRow = document.getElementById('test-notif-row');
+    testRow.style.display = 'flex';
+    testRow.addEventListener('click', async () => {
+      if (Notification.permission === 'granted') {
+        const reg = await navigator.serviceWorker.ready;
+        reg.showNotification('🧪 Test Notificatie', {
+          body: 'Dit is een handmatige test vanuit Wonder Journal.',
+          icon: '/icons/icon-192.png',
+          data: { url: '/pages/dashboard.html' }
+        });
+      } else {
+        alert('Geen toestemming voor notificaties.');
+      }
+    });
+  }
 });
 
 function generateStars() {

@@ -58,10 +58,7 @@
       <span class="stat-num" id="s-words">0</span>
       <span class="stat-label">Totaal woorden</span>
     </div>
-    <div class="stat-card">
-      <span class="stat-num" id="s-steps">0</span>
-      <span class="stat-label">Gem. stappen</span>
-    </div>
+
   </div>
 
   <!-- Streaks -->
@@ -89,13 +86,6 @@
     <div id="mood-bars"></div>
   </div>
 
-  <!-- Correlatie insight -->
-  <div class="card" id="correlation-card" style="display:none">
-    <div class="card-label">Patroon Analyse 🔍</div>
-    <div class="insight-card">
-      <p id="correlation-text"></p>
-    </div>
-  </div>
 
   <!-- Maand activiteit kalender (mini) -->
   <div class="card">
@@ -191,7 +181,7 @@ function renderAll() {
   renderStats(entries);
   renderStreaks();
   renderMoodBars(entries);
-  renderCorrelation(entries);
+
   renderMiniCal();
 }
 
@@ -213,9 +203,7 @@ async function renderStats(entries) {
   document.getElementById('s-streak').textContent = streak;
   const words = entries.reduce((s,e)=>s+(e.text?.split(/\s+/).filter(Boolean).length||0),0);
   document.getElementById('s-words').textContent = words > 999 ? Math.round(words/1000)+'k' : words;
-  const stepsArr = entries.filter(e=>e.steps>0);
-  const avgSteps = stepsArr.length ? Math.round(stepsArr.reduce((s,e)=>s+e.steps,0)/stepsArr.length) : 0;
-  document.getElementById('s-steps').textContent = avgSteps > 999 ? Math.round(avgSteps/1000)+'k' : avgSteps;
+
 }
 
 async function renderStreaks() {
@@ -255,20 +243,6 @@ function renderMoodBars(entries) {
   }, 100);
 }
 
-function renderCorrelation(entries) {
-  const corr = calcCorrelation(entries);
-  const card = document.getElementById('correlation-card');
-  const text = document.getElementById('correlation-text');
-  if (corr === null) { card.style.display='none'; return; }
-  card.style.display='block';
-  const c = parseFloat(corr);
-  let msg = '';
-  if (c > 0.4) msg = `📈 Sterke positieve correlatie (${corr}): Op dagen dat je meer stappen zette, voelde je je ook beter! Blijf actief.`;
-  else if (c > 0.15) msg = `🔄 Lichte trend (${corr}): Bewegen lijkt je humeur positief te beïnvloeden.`;
-  else if (c < -0.15) msg = `🤔 Opvallend (${corr}): Op actieve dagen voelde je je iets minder goed — misschien was je uitgeput?`;
-  else msg = `📊 Geen sterke correlatie (${corr}) gevonden tussen je stappen en gevoel deze periode.`;
-  text.textContent = msg;
-}
 
 function renderMiniCal() {
   const now = new Date();

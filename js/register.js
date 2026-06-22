@@ -22,15 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnBackToWelcome = document.getElementById('btn-back-to-welcome');
 
     const wonderForm = document.getElementById('wonder-login-form');
-    const linkForgotPassword = document.getElementById('link-forgot-password');
     const linkSignUp = document.getElementById('link-sign-up');
-
-    // Google-knoppen verbergen (PocketBase OAuth vereist extra configuratie)
-    const btnGoogleWelcome = document.getElementById('btn-google-welcome');
-    const btnGoogleWonder = document.getElementById('btn-google-wonder');
-    const separatorEl = document.querySelector('.separator');
-    if (btnGoogleWelcome) btnGoogleWelcome.style.display = 'none';
-    if (btnGoogleWonder) btnGoogleWonder.style.display = 'none';
 
     if (btnShowWonder) {
         btnShowWonder.addEventListener('click', () => {
@@ -70,19 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (linkForgotPassword) {
-        linkForgotPassword.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const email = prompt('Voer je e-mailadres in om je wachtwoord te herstellen:');
-            if (!email) return;
-            try {
-                await pbRequest('POST', 'collections/users/request-password-reset', { email });
-                alert('Wachtwoord-herstelmail verzonden! Controleer je inbox.');
-            } catch(error) {
-                alert('Fout: ' + error.message);
-            }
-        });
-    }
 
     if (linkSignUp) {
         linkSignUp.addEventListener('click', async (e) => {

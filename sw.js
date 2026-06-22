@@ -91,9 +91,12 @@ self.addEventListener('message', e => {
     const delay = target - now;
 
     setTimeout(() => {
-      // Client will check if entry exists before actually sending push
-      self.clients.matchAll().then(list => {
-        list.forEach(c => c.postMessage({ type: 'CHECK_REMINDER' }));
+      self.registration.showNotification('✨ Wonder Journal', {
+        body: 'De dag loopt bijna ten einde. Schrijf even een paar zinnen over je dag.',
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        tag: 'daily-reminder',
+        data: { url: '/pages/dashboard.html' }
       });
     }, delay);
   }

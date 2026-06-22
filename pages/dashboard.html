@@ -92,10 +92,6 @@
       <span class="stat-label">Huidige streak</span>
     </div>
     <div class="stat-card">
-      <span class="stat-num" id="stat-steps-today">—</span>
-      <span class="stat-label">Stappen vandaag</span>
-    </div>
-    <div class="stat-card">
       <span class="stat-num" id="stat-words">0</span>
       <span class="stat-label">Woorden dit jaar</span>
     </div>
@@ -114,15 +110,6 @@
       <button class="mood-btn" data-mood="😰"><span class="emoji">😰</span>Stress</button>
     </div>
 
-    <!-- Stappen -->
-    <div class="steps-row">
-      <span class="steps-icon">👟</span>
-      <div class="steps-info">
-        <label for="steps-input">Stappen vandaag</label>
-        <input class="steps-input" id="steps-input" type="number" placeholder="0" min="0" max="99999" inputmode="numeric">
-      </div>
-      <button class="btn-icon" id="sync-health-btn" title="Sync Health" style="font-size:16px">⚡</button>
-    </div>
 
     <!-- Dagboek tekstvak + microfoon -->
     <div class="input-wrap">
@@ -208,7 +195,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Onboarding check
   const ageGroup = await DB.getMeta('age_group');
-  if (!ageGroup) showOnboarding();
+  if (!ageGroup) {
+    const allEntries = await Entries.getAll();
+    if (allEntries.length === 0) {
+      showOnboarding();
+    } else {
+      await DB.setMeta('age_group', 'adult'); // default to prevent showing again
+    }
+  }
 
   // Thema + datum
   ThemeManager.init();
@@ -230,7 +224,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupMoodPicker();
   setupSaveBtn();
   setupMic();
-  setupHealthSync();
+
   setupStreakBtn();
   setupNotifBtn();
   setupWordCount();
@@ -259,7 +253,7 @@ async function loadToday() {
         b.classList.toggle('selected', b.dataset.mood === entry.mood);
       });
     }
-    if (entry.steps) document.getElementById('steps-input').value = entry.steps;
+
     if (entry.text) document.getElementById('journal-text').value = entry.text;
     updateWordCount();
     document.getElementById('save-status').textContent = 'Opgeslagen ✓';
@@ -277,14 +271,6 @@ async function loadStats() {
   const words = yearEntries.filter(e => e.date.startsWith(year))
     .reduce((s,e) => s + (e.text?.split(/\s+/).filter(Boolean).length || 0), 0);
   document.getElementById('stat-words').textContent = words > 999 ? Math.round(words/1000)+'k' : words;
-  // Stappen via Health API
-  const steps = await HealthManager.getStepsToday();
-  if (steps > 0) {
-    document.getElementById('stat-steps-today').textContent = steps.toLocaleString();
-    document.getElementById('steps-input').value = steps;
-  } else {
-    document.getElementById('stat-steps-today').textContent = '—';
-  }
 }
 
 async function loadRecentEntries() {
@@ -308,7 +294,6 @@ async function loadRecentEntries() {
       </div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;color:var(--text-sub);line-height:1.5;word-break:break-word">${preview}</div>
-        ${e.steps ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px">👟 ${e.steps.toLocaleString()} stappen</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -328,12 +313,12 @@ function setupMoodPicker() {
 function setupSaveBtn() {
   document.getElementById('save-btn').addEventListener('click', async () => {
     const text = document.getElementById('journal-text').value.trim();
-    const steps = parseInt(document.getElementById('steps-input').value) || 0;
+
     const btn = document.getElementById('save-btn');
     btn.textContent = 'Opslaan...';
     btn.disabled = true;
     try {
-      await Entries.save(currentUID, { date: dateStr(), mood: selectedMood, steps, text });
+      await Entries.save(currentUID, { date: dateStr(), mood: selectedMood, steps: 0, text });
       document.getElementById('save-status').textContent = 'Opgeslagen ✓';
       btn.textContent = 'Opgeslagen ✓';
       await loadStats();
@@ -367,17 +352,6 @@ function setupMic() {
   });
 }
 
-function setupHealthSync() {
-  document.getElementById('sync-health-btn').addEventListener('click', async () => {
-    const steps = await HealthManager.getStepsToday();
-    if (steps > 0) {
-      document.getElementById('steps-input').value = steps;
-      document.getElementById('stat-steps-today').textContent = steps.toLocaleString();
-    } else {
-      alert('Health Connect niet beschikbaar op dit apparaat.');
-    }
-  });
-}
 
 function setupStreakBtn() {
   document.getElementById('streak-btn').addEventListener('click', async () => {

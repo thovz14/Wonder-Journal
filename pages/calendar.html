@@ -20,9 +20,7 @@
     <div class="modal-date" id="modal-date">—</div>
     <span class="modal-emoji" id="modal-emoji">😊</span>
     <h2 style="font-family:var(--ff-display);font-size:18px;margin-bottom:4px" id="modal-mood-name">—</h2>
-    <div class="modal-steps-row" id="modal-steps-row">
-      <span>👟</span><span id="modal-steps">0 stappen</span>
-    </div>
+
     <div class="modal-journal" id="modal-journal-text">—</div>
     <button class="btn btn-ghost" style="margin-top:24px" onclick="document.getElementById('entry-modal').classList.remove('open')">Sluiten</button>
   </div>
@@ -207,10 +205,7 @@ async function openEntry(ds) {
   document.getElementById('modal-date').textContent = `${days[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
   document.getElementById('modal-emoji').textContent = entry.mood || '📝';
   document.getElementById('modal-mood-name').textContent = MOOD_NAMES[entry.mood] || entry.mood || '—';
-  document.getElementById('modal-steps').textContent = entry.steps ? `${entry.steps.toLocaleString()} stappen` : 'Geen stappen';
   document.getElementById('modal-journal-text').textContent = entry.text || 'Geen tekst geschreven.';
-  const stepsRow = document.getElementById('modal-steps-row');
-  stepsRow.style.display = entry.steps ? 'flex' : 'none';
   document.getElementById('entry-modal').classList.add('open');
 }
 

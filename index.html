@@ -57,7 +57,53 @@
             <button class="btn-back" id="btn-back-to-welcome">← Back</button>
         </div>
     </div>
+    <!-- Sign Up Screen -->
+    <div id="auth-signup-screen" class="screen-view">
+        <div class="content-container">
+            <h1 class="main-title">Sign up</h1>
+            <form id="wonder-signup-form" class="login-form">
+                <div class="avatar-upload-wrap">
+                    <label for="signup-avatar" class="avatar-upload-label">
+                        <div class="avatar-preview" id="signup-avatar-preview">📸</div>
+                    </label>
+                    <input type="file" id="signup-avatar" accept="image/*" style="display:none">
+                    <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px">Kies profielfoto</div>
+                </div>
 
+                <div class="input-line-group">
+                    <label for="signup-name">Name</label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="signup-name" placeholder="Your name" required>
+                    </div>
+                </div>
+
+                <div class="input-line-group">
+                    <label for="signup-email">Email</label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">✉️</span>
+                        <input type="email" id="signup-email" placeholder="name@example.com" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="input-line-group">
+                    <label for="signup-password">Password</label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="signup-password" placeholder="min. 8 characters" minlength="8" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary login-btn">Sign Up</button>
+            </form>
+            
+            <div class="signup-prompt">
+                Already have an account? <a href="#" id="link-back-login" class="signup-link">Sign in</a>
+            </div>
+            
+            <button class="btn-back" id="btn-back-to-welcome2">← Back</button>
+        </div>
+    </div>
     <script>
       // Load user theme preference
       const savedTheme = localStorage.getItem('wj_theme') || 'dark';

@@ -23,6 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const wonderForm = document.getElementById('wonder-login-form');
     const linkSignUp = document.getElementById('link-sign-up');
+    
+    // Nieuwe Signup elementen
+    const signupScreen = document.getElementById('auth-signup-screen');
+    const signupForm = document.getElementById('wonder-signup-form');
+    const linkBackLogin = document.getElementById('link-back-login');
+    const btnBackToWelcome2 = document.getElementById('btn-back-to-welcome2');
+    const avatarInput = document.getElementById('signup-avatar');
+    const avatarPreview = document.getElementById('signup-avatar-preview');
 
     if (btnShowWonder) {
         btnShowWonder.addEventListener('click', () => {
@@ -62,33 +70,87 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
     if (linkSignUp) {
-        linkSignUp.addEventListener('click', async (e) => {
+        linkSignUp.addEventListener('click', (e) => {
             e.preventDefault();
-            const email = prompt('Voer je nieuwe e-mailadres in:');
-            const password = prompt('Kies een sterk wachtwoord (min. 8 tekens):');
+            wonderScreen.classList.remove('active');
+            signupScreen.classList.add('active');
+        });
+    }
 
-            if (email && password) {
-                try {
-                    // Account aanmaken
-                    await pbRequest('POST', 'collections/users/records', {
-                        email,
-                        password,
-                        passwordConfirm: password,
-                        name: email.split('@')[0]
-                    });
-                    // Direct inloggen
-                    const result = await pbRequest('POST', 'collections/users/auth-with-password', {
-                        identity: email,
-                        password: password
-                    });
-                    alert('Account aangemaakt!');
-                    saveUserSession(result);
-                    window.location.href = 'pages/dashboard.html';
-                } catch(error) {
-                    alert('Registratie mislukt: ' + error.message);
+    if (linkBackLogin) {
+        linkBackLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            signupScreen.classList.remove('active');
+            wonderScreen.classList.add('active');
+        });
+    }
+
+    if (btnBackToWelcome2) {
+        btnBackToWelcome2.addEventListener('click', () => {
+            signupScreen.classList.remove('active');
+            welcomeScreen.classList.add('active');
+        });
+    }
+
+    if (avatarInput && avatarPreview) {
+        avatarInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                avatarPreview.style.backgroundImage = `url("${url}")`;
+                avatarPreview.textContent = '';
+            } else {
+                avatarPreview.style.backgroundImage = 'none';
+                avatarPreview.textContent = '📸';
+            }
+        });
+    }
+
+    if (signupForm) {
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const file = avatarInput.files[0];
+
+            const submitBtn = signupForm.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'Bezig...';
+            submitBtn.disabled = true;
+
+            try {
+                // Maak FormData voor file upload
+                const formData = new FormData();
+                formData.append('email', email);
+                formData.append('password', password);
+                formData.append('passwordConfirm', password);
+                formData.append('name', name);
+                if (file) {
+                    formData.append('avatar', file);
                 }
+
+                // Aanmaken
+                const res = await fetch(`${PB_URL}/api/collections/users/records`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data?.message || 'Fout bij aanmaken account');
+
+                // Direct inloggen
+                const authResult = await pbRequest('POST', 'collections/users/auth-with-password', {
+                    identity: email,
+                    password: password
+                });
+
+                saveUserSession(authResult);
+                window.location.href = 'pages/dashboard.html';
+
+            } catch (error) {
+                alert('Registratie mislukt: ' + error.message);
+                submitBtn.textContent = 'Sign Up';
+                submitBtn.disabled = false;
             }
         });
     }

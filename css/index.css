@@ -1,16 +1,4 @@
-:root {
-    --bg-gradient-start: #0a0a16;
-    --bg-gradient-end: #05050b;
-    --card-bg: rgba(21, 21, 41, 0.85);
-    --card-border: rgba(255, 255, 255, 0.08);
-    --text-primary: #ffffff;
-    --text-muted: #71717a;
-    --text-label: #94a3b8;
-    --input-bg: #0f0f1d;
-    --input-border: #1e1e38;
-    --purple-primary: #7c3aed;
-    --purple-gradient-end: #6366f1;
-}
+/* Login specifieke styles — gebruikt variabelen uit app.css */
 
 * {
     box-sizing: border-box;
@@ -23,8 +11,7 @@
 }
 
 html, body {
-    background: #05050b !important;
-    background-image: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end)) !important;
+    background: var(--bg) !important;
     min-height: 100vh;
     width: 100%;
     height: 100%;
@@ -44,8 +31,8 @@ html, body {
 }
 
 .auth-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
+    background: var(--card);
+    border: 1px solid var(--border);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 28px;
@@ -54,6 +41,11 @@ html, body {
     display: none;
     flex-direction: column;
     animation: fadeIn 0.3s ease-out;
+}
+
+/* Light mode: zachtere schaduw */
+[data-theme="light"] .auth-card {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
 }
 
 .auth-card.active {
@@ -72,7 +64,6 @@ html, body {
 
 .lightning-icon {
     font-size: 48px;
-    color: #fbbf24;
     display: block;
     margin-bottom: 8px;
     filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.6));
@@ -93,7 +84,7 @@ html, body {
 }
 
 .brand-header h1 {
-    color: var(--text-primary);
+    color: var(--text);
     font-size: 26px;
     font-weight: 700;
     letter-spacing: -0.5px;
@@ -106,7 +97,7 @@ html, body {
 }
 
 .brand-header .subtitle {
-    color: #94a3b8;
+    color: var(--text-sub);
     font-size: 15px;
 }
 
@@ -118,7 +109,7 @@ html, body {
 }
 
 .input-group label {
-    color: var(--text-label);
+    color: var(--text-sub);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1px;
@@ -126,9 +117,9 @@ html, body {
 }
 
 .input-group input {
-    background-color: var(--input-bg);
-    border: 1px solid var(--input-border);
-    color: var(--text-primary);
+    background-color: var(--bg2);
+    border: 1px solid var(--border-hi);
+    color: var(--text);
     border-radius: 14px;
     padding: 16px;
     font-size: 16px;
@@ -141,8 +132,8 @@ html, body {
 }
 
 .input-group input:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
 .btn {
@@ -165,21 +156,25 @@ html, body {
 }
 
 .btn-wonder {
-    background: linear-gradient(90deg, #4f46e5, var(--purple-primary));
-    color: var(--text-primary);
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    color: #fff;
+    box-shadow: 0 4px 12px var(--accent-glow);
 }
 
 .btn-submit {
-    background: linear-gradient(90deg, #8b5cf6, #6366f1);
-    color: var(--text-primary);
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    color: #fff;
     margin-top: 8px;
-    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
+    box-shadow: 0 4px 20px var(--accent-glow);
 }
 
 .btn-google {
-    background-color: var(--text-primary);
+    background-color: #ffffff;
     color: #000000;
+}
+
+[data-theme="light"] .btn-google {
+    border: 1px solid var(--border-hi);
 }
 
 .google-icon {
@@ -191,7 +186,7 @@ html, body {
     display: flex;
     align-items: center;
     text-align: center;
-    color: rgba(255, 255, 255, 0.2);
+    color: var(--text-muted);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 2px;
@@ -201,7 +196,7 @@ html, body {
 .separator::before, .separator::after {
     content: '';
     flex: 1;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border);
 }
 
 .separator:not(:empty)::before {
@@ -221,7 +216,7 @@ html, body {
 }
 
 .footer-link {
-    color: #818cf8;
+    color: var(--accent);
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
@@ -234,7 +229,7 @@ html, body {
 }
 
 .footer-link.highlighted {
-    color: #a78bfa;
+    color: var(--accent);
     font-weight: 600;
 }
 

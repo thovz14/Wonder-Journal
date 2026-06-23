@@ -4,7 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Wonder Journal - Login</title>
+    <link rel="stylesheet" href="css/app.css">
     <link rel="stylesheet" href="css/index.css">
+    <script>
+        // Stel direct het systeem-thema in (voorkomt flash)
+        (function() {
+            const theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            // Luister naar systeemwijzigingen (bijv. telefoon switcht naar dark mode)
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+            });
+        })();
+    </script>
 </head>
 <body>
     <div class="login-wrapper">

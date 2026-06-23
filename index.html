@@ -1,114 +1,73 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Wonder Journal - Login</title>
-    <link rel="stylesheet" href="css/app.css">
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-    <div class="top-wave">
-        <svg viewBox="0 0 1440 320" preserveAspectRatio="xMidYMax slice">
-            <path fill="currentColor" fill-opacity="1" d="M0,160L48,144C96,128,192,96,288,112C384,128,480,192,576,213.3C672,235,768,213,864,181.3C960,149,1056,107,1152,112C1248,117,1344,171,1392,197.3L1440,224L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
-        </svg>
-    </div>
+    <div class="login-wrapper">
+        <div id="auth-welcome-screen" class="auth-card active">
+            <div class="brand-header">
+                <span class="lightning-icon">📆</span>
+                <h1>Wonder Journal</h1>
+                <p>Welcome! Please choose how to connect</p>
+            </div>
 
-    <!-- Welcome Screen -->
-    <div id="auth-welcome-screen" class="screen-view active">
-        <div class="content-container">
-            <h1 class="main-title">Welcome</h1>
-            <p class="subtitle-text">Connect to Wonderlight Studios to start journaling your adventures.</p>
+            <div class="button-group">
+                <button class="btn btn-wonder" id="btn-show-wonder">
+                    Sign in with Wonder⚡
+                </button>
+                
+                <div class="separator">OR</div>
+                
+                <button class="btn btn-google" id="btn-google-welcome">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo" class="google-icon">
+                    Continue with Google
+                </button>
+            </div>
         </div>
-        <div class="bottom-action">
-            <span class="continue-text">Continue</span>
-            <button class="btn-round" id="btn-show-wonder">→</button>
-        </div>
-    </div>
 
-    <!-- Sign In Screen -->
-    <div id="auth-wonder-screen" class="screen-view">
-        <div class="content-container">
-            <h1 class="main-title">Sign in</h1>
-            <form id="wonder-login-form" class="login-form">
-                <div class="input-line-group">
-                    <label for="email">Email</label>
-                    <div class="input-with-icon">
-                        <span class="input-icon">✉️</span>
-                        <input type="email" id="email" placeholder="demo@email.com" required autocomplete="email">
-                    </div>
+        <div id="auth-wonder-screen" class="auth-card">
+            <div class="brand-header">
+                <div class="logo-row">
+                    <span class="lightning-icon-small">⚡</span>
+                    <h1>Wonder ID</h1>
+                </div>
+                <p class="subtitle">Connect to Wonderlight Studios</p>
+            </div>
+
+            <form id="wonder-login-form">
+                <div class="input-group">
+                    <label for="email">EMAIL ADDRESS</label>
+                    <input type="email" id="email" placeholder="name@example.com" required autocomplete="email">
                 </div>
 
-                <div class="input-line-group">
-                    <label for="password">Password</label>
-                    <div class="input-with-icon">
-                        <span class="input-icon">🔒</span>
-                        <input type="password" id="password" placeholder="enter your password" required>
-                    </div>
+                <div class="input-group">
+                    <label for="password">PASSWORD</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
                 </div>
 
-                <button type="submit" class="btn btn-primary login-btn">Login</button>
+                <button type="submit" class="btn btn-submit">Sign In</button>
             </form>
-            
-            <div class="signup-prompt">
-                Don't have an Account? <a href="#" id="link-sign-up" class="signup-link">Sign up</a>
+
+            <div class="separator">OR</div>
+
+            <button class="btn btn-google" id="btn-google-wonder">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo" class="google-icon">
+                Continue with Google
+            </button>
+
+            <div class="auth-footer">
+                <a href="#" class="footer-link" id="link-forgot-password">Forgot Password?</a>
+                <p class="footer-text">Don't have an account? <a href="#" class="footer-link highlighted" id="link-sign-up">Sign Up</a></p>
             </div>
             
             <button class="btn-back" id="btn-back-to-welcome">← Back</button>
         </div>
     </div>
-    <!-- Sign Up Screen -->
-    <div id="auth-signup-screen" class="screen-view">
-        <div class="content-container">
-            <h1 class="main-title">Sign up</h1>
-            <form id="wonder-signup-form" class="login-form">
-                <div class="avatar-upload-wrap">
-                    <label for="signup-avatar" class="avatar-upload-label">
-                        <div class="avatar-preview" id="signup-avatar-preview">📸</div>
-                    </label>
-                    <input type="file" id="signup-avatar" accept="image/*" style="display:none">
-                    <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px">Kies profielfoto</div>
-                </div>
 
-                <div class="input-line-group">
-                    <label for="signup-name">Name</label>
-                    <div class="input-with-icon">
-                        <span class="input-icon">👤</span>
-                        <input type="text" id="signup-name" placeholder="Your name" required>
-                    </div>
-                </div>
-
-                <div class="input-line-group">
-                    <label for="signup-email">Email</label>
-                    <div class="input-with-icon">
-                        <span class="input-icon">✉️</span>
-                        <input type="email" id="signup-email" placeholder="name@example.com" required autocomplete="email">
-                    </div>
-                </div>
-
-                <div class="input-line-group">
-                    <label for="signup-password">Password</label>
-                    <div class="input-with-icon">
-                        <span class="input-icon">🔒</span>
-                        <input type="password" id="signup-password" placeholder="min. 8 characters" minlength="8" required>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary login-btn">Sign Up</button>
-            </form>
-            
-            <div class="signup-prompt">
-                Already have an account? <a href="#" id="link-back-login" class="signup-link">Sign in</a>
-            </div>
-            
-            <button class="btn-back" id="btn-back-to-welcome2">← Back</button>
-        </div>
-    </div>
-    <script>
-      // Load user theme preference
-      const savedTheme = localStorage.getItem('wj_theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
     <script src="js/register.js"></script>
 </body>
 </html>

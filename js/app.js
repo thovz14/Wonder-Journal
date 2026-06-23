@@ -7,13 +7,23 @@ const PB_URL = 'http://192.168.200.15:8090';
 
 // ─── THEME ───
 const ThemeManager = {
-  get: () => localStorage.getItem('wj_theme') || 'dark',
+  _mqListener: null,
+  _mq: window.matchMedia('(prefers-color-scheme: dark)'),
+
+  /** Bepaal het actieve thema: volg het systeem */
+  get() {
+    return this._mq.matches ? 'dark' : 'light';
+  },
+
+  /** Pas thema toe op de pagina */
   apply(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('wj_theme', theme);
   },
+
+  /** Handmatige toggle (settings pagina) — met animatie */
   toggle(x, y) {
-    const next = this.get() === 'dark' ? 'light' : 'dark';
+    const current = document.documentElement.getAttribute('data-theme') || this.get();
+    const next = current === 'dark' ? 'light' : 'dark';
     const overlay = document.getElementById('theme-overlay');
     if (overlay) {
       overlay.style.setProperty('--tx', x + 'px');
@@ -29,7 +39,25 @@ const ThemeManager = {
     }
     return next;
   },
-  init() { this.apply(this.get()); }
+
+  /** Start thema + luister naar systeemwijzigingen */
+  init() {
+    // Pas het systeem-thema direct toe
+    this.apply(this.get());
+
+    // Luister naar realtime systeemwijzigingen (dark/light mode switch)
+    if (!this._mqListener) {
+      this._mqListener = (e) => {
+        const newTheme = e.matches ? 'dark' : 'light';
+        this.apply(newTheme);
+        // Update sky-toggle UI als die op de pagina staat (settings)
+        if (typeof applyThemeToggleUI === 'function') {
+          applyThemeToggleUI(newTheme);
+        }
+      };
+      this._mq.addEventListener('change', this._mqListener);
+    }
+  }
 };
 
 // ─── AES ENCRYPTIE (Web Crypto API) ───
